@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kibana
+    component: kibana
+  name: kibana
+  namespace: kube-system
+spec:
+  selector:
+    app: kibana
+    component: kibana
+  ports:
+  - port: 5601
+    protocol: TCP
+    targetPort: 8080
+  type: ClusterIP
