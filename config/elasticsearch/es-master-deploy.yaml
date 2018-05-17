@@ -6,7 +6,7 @@ metadata:
     component: elasticsearch
     role: master
   name: elasticsearch-master
-  namespace: kube-system
+  namespace: logging
 spec:
   replicas: 1
   template:
@@ -30,7 +30,7 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: management
+              - key: logging
                 operator: In
                 values:
                 - "true"
@@ -58,7 +58,8 @@ spec:
             add:
               - IPC_LOCK
 #        image: "ibmcom/elasticsearch:5.5.1"
-        image: "elasticsearch_zcp"
+#        image: "elasticsearch_zcp"
+        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
         imagePullPolicy: IfNotPresent
         resources:
           limits:

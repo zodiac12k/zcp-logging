@@ -2,15 +2,15 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: elastic
-  namespace: kube-system
-  annotations:
+  namespace: logging
+#  annotations:
 #    kubernetes.io/ingress.class: "ibm-icp-management"
 #    icp.management.ibm.com/authz-type: "rbac"
 #    icp.management.ibm.com/location-modifier: "~"
 #    icp.management.ibm.com/configuration-snippet: |
-      if ($request_uri ~* "/_([0-9A-Za-z]*)\?_timestamp=[0-9]*(.*)") {
-                proxy_pass http://$proxy_upstream_name/_$1?$2;
-            }
+#      if ($request_uri ~* "/_([0-9A-Za-z]*)\?_timestamp=[0-9]*(.*)") {
+#                proxy_pass http://$proxy_upstream_name/_$1?$2;
+#            }
 spec:
   rules:
   - http:

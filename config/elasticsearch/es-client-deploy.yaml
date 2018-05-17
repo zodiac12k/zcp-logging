@@ -6,7 +6,7 @@ metadata:
     component: elasticsearch
     role: client
   name: elasticsearch-client
-  namespace: kube-system
+  namespace: logging
 spec:
   replicas: 1
   template:
@@ -29,7 +29,7 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: management
+              - key: logging 
                 operator: In
                 values:
                 - "true"
@@ -52,7 +52,8 @@ spec:
       containers:
       - name: indices-cleaner
 #        image: "ibmcom/indices-cleaner:0.2"
-        image: "elasticsearch_zcp"
+#        image: "elasticsearch_zcp"
+        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - name: actionfile
@@ -74,7 +75,8 @@ spec:
             add:
               - IPC_LOCK
 #        image: "ibmcom/elasticsearch:5.5.1"
-        image: "elasticsearch_zcp"
+#        image: "elasticsearch_zcp"
+        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
         imagePullPolicy: IfNotPresent
         resources:
           limits:

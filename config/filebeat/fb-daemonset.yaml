@@ -1,4 +1,3 @@
----
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
@@ -7,7 +6,7 @@ metadata:
     component: filebeat
     role: daemonset
   name: filebeat-ds-amd64
-  namespace: kube-system
+  namespace: logging
 spec:
   updateStrategy:
     type: RollingUpdate
@@ -31,161 +30,8 @@ spec:
       containers:
       - name: filebeat
 #        image: "ibmcom/filebeat:5.5.1"
-        image: "filebeat_zcp"
-        env:
-        - name: NODE_HOSTNAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        - name: POD_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
-        volumeMounts:
-        - name: config
-          mountPath: /usr/share/filebeat/filebeat.yml
-          subPath: filebeat.yml
-        - name: data
-          mountPath: /usr/share/filebeat/data
-        - name: container-log
-          mountPath: /var/log/containers
-          readOnly: true
-        - name: pod-log
-          mountPath: /var/log/pods
-          readOnly: true
-        - name: docker-log
-          mountPath: /var/lib/docker/containers/
-          readOnly: true
-      volumes:
-      - name: config
-        configMap:
-          name: filebeat-ds-config
-          items:
-          - key: filebeat.yml
-            path: filebeat.yml
-      - emptyDir:
-          medium: ""
-        name: data
-      - name: container-log
-        hostPath:
-          path: /var/log/containers
-      - name: pod-log
-        hostPath:
-          path: /var/log/pods
-      - name: docker-log
-        hostPath:
-          path: /var/lib/docker/containers
----
-apiVersion: extensions/v1beta1
-kind: DaemonSet
-metadata:
-  labels:
-    app: filebeat
-    component: filebeat
-    role: daemonset
-  name: filebeat-ds-ppc64le
-  namespace: kube-system
-spec:
-  updateStrategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-  template:
-    metadata:
-      labels:
-        name: filebeat-ds
-        arch: ppc64le
-    spec:
-      terminationGracePeriodSeconds: 30
-      nodeSelector:
-        beta.kubernetes.io/arch: ppc64le
-      tolerations:
-        - key: "dedicated"
-          operator: "Exists"
-          effect: "NoSchedule"
-      securityContext:
-        runAsUser: 0
-      containers:
-      - name: filebeat
-#        image: "ibmcom/filebeat-ppc64le:5.5.1"
-        image: "filebeat_zcp"
-        env:
-        - name: NODE_HOSTNAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        - name: POD_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
-        volumeMounts:
-        - name: config
-          mountPath: /usr/share/filebeat/filebeat.yml
-          subPath: filebeat.yml
-        - name: data
-          mountPath: /usr/share/filebeat/data
-        - name: container-log
-          mountPath: /var/log/containers
-          readOnly: true
-        - name: pod-log
-          mountPath: /var/log/pods
-          readOnly: true
-        - name: docker-log
-          mountPath: /var/lib/docker/containers/
-          readOnly: true
-      volumes:
-      - name: config
-        configMap:
-          name: filebeat-ds-config
-          items:
-          - key: filebeat.yml
-            path: filebeat.yml
-      - emptyDir:
-          medium: ""
-        name: data
-      - name: container-log
-        hostPath:
-          path: /var/log/containers
-      - name: pod-log
-        hostPath:
-          path: /var/log/pods
-      - name: docker-log
-        hostPath:
-          path: /var/lib/docker/containers
----
-apiVersion: extensions/v1beta1
-kind: DaemonSet
-metadata:
-  labels:
-    app: filebeat
-    component: filebeat
-    role: daemonset
-  name: filebeat-ds-s390x
-  namespace: kube-system
-spec:
-  updateStrategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-  template:
-    metadata:
-      labels:
-        name: filebeat-ds
-        arch: s390x
-    spec:
-      terminationGracePeriodSeconds: 30
-      nodeSelector:
-        beta.kubernetes.io/arch: s390x
-      tolerations:
-        - key: "dedicated"
-          operator: "Exists"
-          effect: "NoSchedule"
-      securityContext:
-        runAsUser: 0
-      containers:
-      - name: filebeat
-#        image: "ibmcom/filebeat-s390x:5.5.1"
-        image: "filebeat_zcp"
+#        image: "filebeat_zcp"
+        image: "docker.elastic.co/beats/filebeat:6.2.4"
         env:
         - name: NODE_HOSTNAME
           valueFrom:

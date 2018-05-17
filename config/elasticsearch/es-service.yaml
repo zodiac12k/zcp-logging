@@ -5,7 +5,7 @@ metadata:
     app: elasticsearch
     component: elasticsearch
   name: elasticsearch
-  namespace: kube-system
+  namespace: logging
 spec:
   selector:
     app: elasticsearch

@@ -5,7 +5,7 @@ metadata:
     app: logstash
     component: logstash
   name: logstash
-  namespace: kube-system
+  namespace: logging
 spec:
   replicas: 1
   template:
@@ -27,7 +27,7 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: management
+              - key: logging
                 operator: In
                 values:
                 - "true"
@@ -36,7 +36,8 @@ spec:
         - name: LS_JAVA_OPTS
           value: -Xmx256m -Xms256m
 #        image: "ibmcom/logstash:5.5.1"
-        image: "logstash_zcp"
+#        image: "logstash_zcp"
+        image: "docker.elastic.co/logstash/logstash:6.2.4"
         resources:
           limits:
             memory: "512M"

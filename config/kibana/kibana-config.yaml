@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kibana-config
-  namespace: kube-system
+  namespace: logging
 data:
   kibana.yml: |-
     server.name: kibana

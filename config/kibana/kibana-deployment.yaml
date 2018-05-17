@@ -5,7 +5,7 @@ metadata:
     app: kibana
     component: kibana
   name: kibana
-  namespace: kube-system
+  namespace: logging
 spec:
   replicas: 1
   template:
@@ -27,7 +27,7 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: management
+              - key: logging
                 operator: In
                 values:
                 - "true"
@@ -58,7 +58,8 @@ spec:
 #            mountPath: "/opt/ibm/router/entry"
       - name: kibana
 #        image: "ibmcom/kibana:5.5.1"
-        image: "kibana_zcp"
+#        image: "kibana_zcp"
+        image: "docker.elastic.co/kibana/kibana:6.2.4"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5601
@@ -78,28 +79,28 @@ spec:
             items:
               - key: kibana.yml
                 path: kibana.yml
-        - name: router-config
-          configMap:
-            name: kibana-nginx-config
-        - name: router-certs
-          secret:
-            secretName: router-certs
-        - name: router-entry
-          configMap:
-            name: kibana-router-entrypoint
-            defaultMode: 0744
+#        - name: router-config
+#          configMap:
+#            name: kibana-nginx-config
+#        - name: router-certs
+#          secret:
+#            secretName: router-certs
+#        - name: router-entry
+#          configMap:
+#            name: kibana-router-entrypoint
+#            defaultMode: 0744
 
----
+#---
 
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kibana-router-entrypoint
-  namespace: kube-system
-data:
-  entrypoint.sh: |
-    #!/bin/sh
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: kibana-router-entrypoint
+#  namespace: logging
+#data:
+#  entrypoint.sh: |
+#    #!/bin/sh
 #    cp -f /opt/ibm/router/certs/tls.crt /opt/ibm/router/nginx/conf/server.crt
 #    cp -f /opt/ibm/router/certs/tls.key /opt/ibm/router/nginx/conf/server.key
 #    cp -f /opt/ibm/router/conf/nginx.conf /opt/ibm/router/nginx/conf/nginx.conf
-    nginx -g 'daemon off;'
+#    nginx -g 'daemon off;'

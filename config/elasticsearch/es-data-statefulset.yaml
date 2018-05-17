@@ -7,7 +7,7 @@ metadata:
     component: elasticsearch
     role: data
   name: elasticsearch-data
-  namespace: kube-system
+  namespace: logging
 spec:
   updateStrategy:
     type: RollingUpdate
@@ -35,7 +35,7 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: management
+              - key: logging
                 operator: In
                 values:
                 - "true"
@@ -65,7 +65,8 @@ spec:
             add:
               - IPC_LOCK
 #        image: "ibmcom/elasticsearch:5.5.1"
-        image: "elasticsearch_zcp"
+#        image: "elasticsearch_zcp"
+        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
         imagePullPolicy: IfNotPresent
         resources:
           limits:
@@ -96,11 +97,11 @@ spec:
       labels:
         app: elasticsearch
         component: elasticsearch
-        namespace: kube-system
+        namespace: logging
     spec:
       accessModes:
         - ReadWriteOnce
       resources:
         requests:
           storage: "20Gi"
-      storageClassName: "logging-storage"
+      storageClassName: "ibmc-block-bronze"
