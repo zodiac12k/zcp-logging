@@ -20,7 +20,12 @@ spec:
       - key: "dedicated"
         operator: "Exists"
         effect: "NoSchedule"
+      - key: "value"
+        operator: "Exists"
+        effect: "NoSchedule"
       restartPolicy: Always
+#      nodeSelector:
+#        logging: "true"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -30,26 +35,28 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: logging
+              - key: logging 
                 operator: In
                 values:
                 - "true"
-#      initContainers:
-#      - name: "chmod"
+      initContainers:
+      - name: "chmod"
 #        image: "ibmcom/icp-initcontainer:1.0.0"
-#        imagePullPolicy: "IfNotPresent"
-#        command: ["chmod", "777", "/data-dir"]
-#        securityContext:
-#          privileged: true
-#        volumeMounts:
-#        - name: elasticsearch-data
-#          mountPath: /data-dir
-#      - name: "sysctl"
+        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
+        imagePullPolicy: "IfNotPresent"
+        command: ["chmod", "777", "/data-dir"]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: elasticsearch-data
+          mountPath: /data-dir
+      - name: "sysctl"
 #        image: "ibmcom/icp-initcontainer:1.0.0"
-#        imagePullPolicy: "IfNotPresent"
-#        command: ["sysctl", "-w", "vm.max_map_count=262144"]
-#        securityContext:
-#          privileged: true
+        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
+        imagePullPolicy: "IfNotPresent"
+        command: ["sysctl", "-w", "vm.max_map_count=262144"]
+        securityContext:
+          privileged: true
       containers:
       - name: es-master
         securityContext:
@@ -63,10 +70,10 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
           limits:
-            memory: "1024M"
+            memory: "2048M"
         env:
         - name: "ES_JAVA_OPTS"
-          value: "-Xms256m -Xmx256m"
+          value: "-Xms512m -Xmx512m"
         ports:
         - containerPort: 9300
           name: transport
