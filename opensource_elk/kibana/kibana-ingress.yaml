@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kibana
+  namespace: logging
+#  annotations:
+#    kubernetes.io/ingress.class: "ibm-icp-management"
+#    icp.management.ibm.com/rewrite-target: "/"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /kibana
+        backend:
+          serviceName: kibana
+          servicePort: 5601

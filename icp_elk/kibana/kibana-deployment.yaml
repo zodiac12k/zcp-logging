@@ -1,0 +1,111 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: kibana
+    component: kibana
+  name: kibana
+  namespace: logging
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kibana
+        component: kibana
+    spec:
+      tolerations:
+#      - key: "dedicated"
+#        operator: "Exists"
+#        effect: "NoSchedule"
+      - key: "LoggingNode"
+        operator: "Equal"
+        value: "log"
+        effect: "NoSchedule"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - "amd64"
+              - key: logging
+                operator: In
+                values:
+                - "true"
+      restartPolicy: Always
+      containers:
+#      - name: router
+#        env:
+#          - name: CLUSTER_DOMAIN
+#            value: "cluster.local"
+#          - name: WLP_CLIENT_ID
+#            valueFrom:
+#              secretKeyRef:
+#                name: platform-oidc-credentials
+#                key: WLP_CLIENT_ID
+#        image: "ibmcom/icp-router:2.2.0"
+#        imagePullPolicy: "IfNotPresent"
+#        command: ["/opt/ibm/router/entry/entrypoint.sh"]
+#        ports:
+#        - name: router
+#          containerPort: 8080
+#          hostPort: 5601
+#        volumeMounts:
+#          - name: router-config
+#            mountPath: "/opt/ibm/router/conf"
+#          - name: router-certs
+#            mountPath: "/opt/ibm/router/certs"
+#          - name: router-entry
+#            mountPath: "/opt/ibm/router/entry"
+      - name: kibana
+        image: "ibmcom/kibana:5.5.1"
+#        image: "kibana_zcp"
+#        image: "docker.elastic.co/kibana/kibana:6.2.4"
+        imagePullPolicy: IfNotPresent
+        ports:
+#        - containerPort: 5601
+        - containerPort: 5602
+        volumeMounts:
+        - name: "kibana-conf"
+          mountPath: "/usr/share/kibana/config/kibana.yml"
+          subPath: kibana.yml
+        - name: cache
+          mountPath: /usr/share/kibana/optimize
+      volumes:
+        - emptyDir:
+            medium: ""
+          name: cache
+        - name: "kibana-conf"
+          configMap:
+            name: kibana-config
+            items:
+              - key: kibana.yml
+                path: kibana.yml
+#        - name: router-config
+#          configMap:
+#            name: kibana-nginx-config
+#        - name: router-certs
+#          secret:
+#            secretName: router-certs
+#        - name: router-entry
+#          configMap:
+#            name: kibana-router-entrypoint
+#            defaultMode: 0744
+
+#---
+
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: kibana-router-entrypoint
+#  namespace: logging
+#data:
+#  entrypoint.sh: |
+#    #!/bin/sh
+#    cp -f /opt/ibm/router/certs/tls.crt /opt/ibm/router/nginx/conf/server.crt
+#    cp -f /opt/ibm/router/certs/tls.key /opt/ibm/router/nginx/conf/server.key
+#    cp -f /opt/ibm/router/conf/nginx.conf /opt/ibm/router/nginx/conf/nginx.conf
+#    nginx -g 'daemon off;'
