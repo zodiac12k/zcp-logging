@@ -6,7 +6,7 @@ metadata:
     component: elasticsearch
     role: master
   name: elasticsearch-master
-  namespace: logging
+  namespace: zcp-logging
 spec:
   replicas: 1
   template:

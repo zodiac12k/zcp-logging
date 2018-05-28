@@ -5,7 +5,7 @@ metadata:
     app: elasticsearch
     component: elasticsearch
   name: elasticsearch-data
-  namespace: logging
+  namespace: zcp-logging
 spec:
   type: ClusterIP
   selector:

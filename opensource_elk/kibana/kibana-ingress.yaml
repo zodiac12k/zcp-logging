@@ -2,7 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: kibana
-  namespace: logging
+  namespace: zcp-logging
 #  annotations:
 #    kubernetes.io/ingress.class: "ibm-icp-management"
 #    icp.management.ibm.com/rewrite-target: "/"

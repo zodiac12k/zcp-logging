@@ -5,7 +5,7 @@ metadata:
     app: logstash
     component: logstash
   name: logstash
-  namespace: logging
+  namespace: zcp-logging
 spec:
   replicas: 1
   template:

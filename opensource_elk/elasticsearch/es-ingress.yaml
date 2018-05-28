@@ -2,7 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: elastic
-  namespace: logging
+  namespace: zcp-logging
 #  annotations:
 #    kubernetes.io/ingress.class: "ibm-icp-management"
 #    icp.management.ibm.com/authz-type: "rbac"

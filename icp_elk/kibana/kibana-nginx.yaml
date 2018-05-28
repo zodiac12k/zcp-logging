@@ -5,7 +5,7 @@ metadata:
     app: kibana
     component: kibana
   name: kibana-nginx-config
-  namespace: logging
+  namespace: zcp-logging
 data:
   nginx.conf: |-
     error_log stderr warn;
