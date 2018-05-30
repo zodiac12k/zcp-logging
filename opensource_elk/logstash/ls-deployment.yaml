@@ -22,6 +22,10 @@ spec:
         operator: "Equal"
         value: "log"
         effect: "NoSchedule"
+      - key: "management"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

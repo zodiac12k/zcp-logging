@@ -12,7 +12,7 @@ data:
     -
       input_type: log
       paths:
-        - /var/lib/docker/containers/*/*.log
+       - /var/lib/docker/containers/*/*.log
       scan_frequency: 10s
       symlinks: true
       json.message_key: log
