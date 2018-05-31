@@ -18,9 +18,9 @@ spec:
 #      - key: "dedicated"
 #        operator: "Exists"
 #        effect: "NoSchedule"
-      - key: "LoggingNode"
+      - key: "logging"
         operator: "Equal"
-        value: "log"
+        value: "true"
         effect: "NoSchedule"
       - key: "management"
         operator: "Equal"
@@ -35,10 +35,10 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: logging
+              - key: role 
                 operator: In
                 values:
-                - "true"
+                - "logging"
       containers:
       - env:
         - name: LS_JAVA_OPTS
