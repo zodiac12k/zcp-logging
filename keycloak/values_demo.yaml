@@ -16,7 +16,7 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   path: /
   hosts:
-    - kibana-demo.zcp-demo.jp-tok.containers.mybluemix.net
+    - kibana.zcp-demo.jp-tok.containers.mybluemix.net
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -49,8 +49,8 @@ tolerations:
 configmap:
   targetUrl: http://kibana:5602/
   realm: zcp
-  realmPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiwJG249ll0vpZF5bJLkxRkZgY+jTQn/VNmfOUKVch/Rxu07oZIrGWlboLrgvrQ/RVRPyPkMx5kf/1elxwCvvHmefuibsJKk2nvQIGEtNl6kQ3k2myGlkmrrMgiAoYQIWzu8nTI1RKcUb52HKhZ9PMdb5msOrpxUnKQVU9eyp6NrcV4UaUp1MOG7f63u7Sx9VGbhOXJyHfUIFMvLAVsubObrEZW4Qd8bSGz0s/sN1sxBjXAiKsVOQma7JlU9mY3VVHls+vS9iBvy/e9TpZFBmo8F7ijm8gSnMWyhhhm4vkE8Zq7KK6bo0JTNt+ciqGrI8kEm8yde6QSqo2iAZDzV+BQIDAQAB"
-  authServerUrl: http://keycloak.cloudzcp.io/auth
+  realmPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmZf6DUZLq0RSZM+ufruxU+QvHKXtIbyhYCylsmEKDixrDdCe6lkbZGRVwuehTEb71ya/e5Uzl6x3qe6tgFFouc+xDDz7hVBCx+OxW1B8i3Q66+qHbN4ehv86aiw6oMLGsK5A2/p0w/pqnC8JCO4tw9fBIxXA9+18ot1Dstdac5pVt1h0sW1Ud4/SplWtOxg5XbXg4UnMGecnnGn2dPF1bCw7PTlCDG+/UwJAVgR8H83TbTJsT/8FDs5KYE6MNE/OKqdfEpTvtNo+hcZBH/nHYN0tx4afNJZOmE+HHRsrrzZ96EqnxjGaEVZax7n+GX4M6sr/OdGDhG/YDtuqbvUHewIDAQAB"
+  authServerUrl: https://keycloak.cloudzcp.io/auth
   resource: kibana
   secret: 254d9dcc-c27f-48a2-8e7d-70ef1abbc401
   pattern: /*	

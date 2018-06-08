@@ -16,7 +16,7 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   path: /
   hosts:
-    - kibana-dev.zcp-dev.jp-tok.containers.mybluemix.net
+    - kibana.zcp-dev.jp-tok.containers.mybluemix.net
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -44,8 +44,8 @@ configmap:
   targetUrl: http://kibana:5602/
   realm: zcp
   realmPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiwJG249ll0vpZF5bJLkxRkZgY+jTQn/VNmfOUKVch/Rxu07oZIrGWlboLrgvrQ/RVRPyPkMx5kf/1elxwCvvHmefuibsJKk2nvQIGEtNl6kQ3k2myGlkmrrMgiAoYQIWzu8nTI1RKcUb52HKhZ9PMdb5msOrpxUnKQVU9eyp6NrcV4UaUp1MOG7f63u7Sx9VGbhOXJyHfUIFMvLAVsubObrEZW4Qd8bSGz0s/sN1sxBjXAiKsVOQma7JlU9mY3VVHls+vS9iBvy/e9TpZFBmo8F7ijm8gSnMWyhhhm4vkE8Zq7KK6bo0JTNt+ciqGrI8kEm8yde6QSqo2iAZDzV+BQIDAQAB"
-  authServerUrl: http://keycloak.cberry.xyz/auth
-  resource: kibana-dev
+  authServerUrl: https://keycloak.cberry.xyz/auth
+  resource: kibana
   secret: cfae0ea1-c0e3-4fa5-a40a-2783bd5b1a55 
   pattern: /*	
   rolesAllowed: admin
