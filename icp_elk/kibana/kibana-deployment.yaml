@@ -18,9 +18,9 @@ spec:
 #      - key: "dedicated"
 #        operator: "Exists"
 #        effect: "NoSchedule"
-      - key: "LoggingNode"
+      - key: "logging"
         operator: "Equal"
-        value: "log"
+        value: "true"
         effect: "NoSchedule"
       affinity:
         nodeAffinity:
@@ -31,10 +31,10 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: logging
+              - key: role
                 operator: In
                 values:
-                - "true"
+                - "logging"
       restartPolicy: Always
       containers:
 #      - name: router

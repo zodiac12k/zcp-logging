@@ -29,9 +29,9 @@ spec:
 #      - key: "value"
 #        operator: "Exists"
 #        effect: "NoSchedule"
-      - key: "LoggingNode"
+      - key: "logging"
         operator: "Equal"
-        value: "log"
+        value: "true"
         effect: "NoSchedule"
       restartPolicy: Always
       affinity:
@@ -43,10 +43,10 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: logging
+              - key: role
                 operator: In
                 values:
-                - "true"
+                - "logging"
       securityContext:
         fsGroup: 1000
       initContainers:
