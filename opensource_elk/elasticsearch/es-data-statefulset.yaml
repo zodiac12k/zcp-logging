@@ -7,7 +7,7 @@ metadata:
     component: elasticsearch
     role: data
   name: elasticsearch-data
-  namespace: zcp-logging
+  namespace: zcp-system
 spec:
   updateStrategy:
     type: RollingUpdate
@@ -106,7 +106,7 @@ spec:
       labels:
         app: elasticsearch
         component: elasticsearch
-        namespace: logging
+        namespace: zcp-system
         billingType: "hourly"
       annotations: 
         volume.beta.kubernetes.io/storage-class: ibmc-block-bronze

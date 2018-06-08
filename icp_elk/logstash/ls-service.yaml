@@ -5,7 +5,7 @@ metadata:
     app: logstash
     component: logstash
   name: logstash
-  namespace: zcp-logging
+  namespace: zcp-system
 spec:
   ports:
   - port: 5044

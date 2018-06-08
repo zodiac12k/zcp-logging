@@ -18,13 +18,9 @@ spec:
 #      - key: "dedicated"
 #        operator: "Exists"
 #        effect: "NoSchedule"
-      - key: "logging"
+      - key: "LoggingNode"
         operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-      - key: "management"
-        operator: "Equal"
-        value: "true"
+        value: "log"
         effect: "NoSchedule"
       affinity:
         nodeAffinity:
@@ -35,20 +31,18 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: role 
+              - key: logging
                 operator: In
                 values:
-                - "logging"
+                - "true"
       containers:
       - env:
         - name: LS_JAVA_OPTS
           value: -Xmx256m -Xms256m
-#        image: "ibmcom/logstash:5.5.1"
-#        image: "logstash_zcp"
-        image: "docker.elastic.co/logstash/logstash:6.2.4"
+        image: "ibmcom/logstash:5.5.1"
         resources:
           limits:
-            memory: "512M"
+            memory: "1024M"
         name: logstash
         ports:
         - containerPort: 5044

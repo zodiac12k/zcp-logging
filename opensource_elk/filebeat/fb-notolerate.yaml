@@ -25,20 +25,13 @@ spec:
 #        - key: "dedicated"
 #          operator: "Exists"
 #          effect: "NoSchedule"
-#      - key: "LoggingNode"
-#        operator: "Equal"
-#        value: "log"
-#        effect: "NoSchedule"
-#      - key: "management"
-#        operator: "Equal"
-#        value: "true"
-#        effect: "NoSchedule"
-      - operator: Exists
       securityContext:
         runAsUser: 0
       containers:
       - name: filebeat
-        image: "ibmcom/filebeat:5.5.1"
+#        image: "ibmcom/filebeat:5.5.1"
+#        image: "filebeat_zcp"
+        image: "docker.elastic.co/beats/filebeat:6.2.4"
         env:
         - name: NODE_HOSTNAME
           valueFrom:

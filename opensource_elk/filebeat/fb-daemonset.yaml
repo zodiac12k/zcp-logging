@@ -6,7 +6,7 @@ metadata:
     component: filebeat
     role: daemonset
   name: filebeat-ds-amd64
-  namespace: zcp-logging
+  namespace: zcp-system
 spec:
   updateStrategy:
     type: RollingUpdate
@@ -25,14 +25,15 @@ spec:
 #        - key: "dedicated"
 #          operator: "Exists"
 #          effect: "NoSchedule"
-      - key: "logging"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-      - key: "management"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
+#      - key: "logging"
+#        operator: "Equal"
+#        value: "true"
+#        effect: "NoSchedule"
+#      - key: "management"
+#        operator: "Equal"
+#        value: "true"
+#        effect: "NoSchedule"
+      - operator: Exists
       securityContext:
         runAsUser: 0
       containers:

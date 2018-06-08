@@ -5,7 +5,7 @@ metadata:
     app: elasticsearch
     component: elasticsearch
   name: elasticsearch-discovery
-  namespace: zcp-logging
+  namespace: zcp-system
 spec:
   selector:
     app: elasticsearch

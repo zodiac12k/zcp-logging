@@ -1,26 +1,20 @@
----
-apiVersion: apps/v1beta1
-kind: StatefulSet
+apiVersion: extensions/v1beta1
+kind: Deployment
 metadata:
   labels:
     app: elasticsearch
     component: elasticsearch
-    role: data
-    logging: "true"
-  name: elasticsearch-data
+    role: master
+  name: elasticsearch-master
   namespace: zcp-system
 spec:
-  updateStrategy:
-    type: RollingUpdate
-  podManagementPolicy: Parallel
-  serviceName: elasticsearch-data
   replicas: 1
   template:
     metadata:
       labels:
         app: elasticsearch
         component: elasticsearch
-        role: data
+        role: master
     spec:
       tolerations:
 #      - key: "dedicated"
@@ -34,6 +28,8 @@ spec:
         value: "log"
         effect: "NoSchedule"
       restartPolicy: Always
+#      nodeSelector:
+#        logging: "true"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -43,12 +39,10 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: logging
+              - key: logging 
                 operator: In
                 values:
                 - "true"
-      securityContext:
-        fsGroup: 1000
       initContainers:
       - name: "chmod"
         image: "ibmcom/icp-initcontainer:1.0.0"
@@ -66,7 +60,7 @@ spec:
         securityContext:
           privileged: true
       containers:
-      - name: es-data
+      - name: es-master
         securityContext:
           privileged: false
           capabilities:
@@ -76,7 +70,7 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
           limits:
-            memory: "1024M"
+            memory: "2048M"
         env:
         - name: "ES_JAVA_OPTS"
           value: "-Xms512m -Xmx512m"
@@ -91,26 +85,11 @@ spec:
           mountPath: "/usr/share/elasticsearch/config/elasticsearch.yml"
           subPath: elasticsearch.yml
       volumes:
+        - name: "elasticsearch-data"
+          emptyDir: {}
         - name: "elasticsearch-conf"
           configMap:
             name: es-configmap
             items:
-              - key: data.yml
+              - key: master.yml
                 path: elasticsearch.yml
-  volumeClaimTemplates:
-  - metadata:
-      name: elasticsearch-data
-      labels:
-        app: elasticsearch
-        component: elasticsearch
-        namespace: zcp-system
-        billingType: "hourly"
-      annotations: 
-        volume.beta.kubernetes.io/storage-class: ibmc-block-bronze
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: "20Gi"
-      storageClassName: "ibmc-block-bronze"

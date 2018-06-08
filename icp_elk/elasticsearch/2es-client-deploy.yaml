@@ -23,9 +23,9 @@ spec:
 #      - key: "value"
 #        operator: "Exists"
 #        effect: "NoSchedule"
-      - key: "logging"
+      - key: "LoggingNode"
         operator: "Equal"
-        value: "true"
+        value: "log"
         effect: "NoSchedule"
       restartPolicy: Always
       affinity:
@@ -37,14 +37,13 @@ spec:
                 operator: In
                 values:
                 - "amd64"
-              - key: role 
+              - key: logging 
                 operator: In
                 values:
-                - "logging"
+                - "true"
       initContainers:
       - name: "chmod"
-#        image: "ibmcom/icp-initcontainer:1.0.0"
-        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
+        image: "ibmcom/icp-initcontainer:1.0.0"
         imagePullPolicy: "IfNotPresent"
         command: ["chmod", "777", "/data-dir"]
         securityContext:
@@ -53,8 +52,7 @@ spec:
         - name: elasticsearch-data
           mountPath: /data-dir
       - name: "sysctl"
-#        image: "ibmcom/icp-initcontainer:1.0.0"
-        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
+        image: "ibmcom/icp-initcontainer:1.0.0"
         imagePullPolicy: "IfNotPresent"
         command: ["sysctl", "-w", "vm.max_map_count=262144"]
         securityContext:
@@ -62,8 +60,6 @@ spec:
       containers:
 #      - name: indices-cleaner
 #        image: "ibmcom/indices-cleaner:0.2"
-#        image: "elasticsearch_zcp"
-#        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
 #        imagePullPolicy: IfNotPresent
 #        volumeMounts:
 #        - name: actionfile
@@ -84,16 +80,14 @@ spec:
           capabilities:
             add:
               - IPC_LOCK
-#        image: "ibmcom/elasticsearch:5.5.1"
-#        image: "elasticsearch_zcp"
-        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
+        image: "ibmcom/elasticsearch:5.5.1"
         imagePullPolicy: IfNotPresent
         resources:
           limits:
-            memory: "1024M"
+            memory: "2048M"
         env:
         - name: "ES_JAVA_OPTS"
-          value: "-Xms256m -Xmx256m"
+          value: "-Xms512m -Xmx512m"
         ports:
         - containerPort: 9200
           name: rest

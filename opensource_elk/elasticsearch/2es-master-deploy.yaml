@@ -4,8 +4,8 @@ metadata:
   labels:
     app: elasticsearch
     component: elasticsearch
-    role: client
-  name: elasticsearch-client
+    role: master
+  name: elasticsearch-master
   namespace: zcp-system
 spec:
   replicas: 1
@@ -14,7 +14,7 @@ spec:
       labels:
         app: elasticsearch
         component: elasticsearch
-        role: client
+        role: master
     spec:
       tolerations:
 #      - key: "dedicated"
@@ -28,6 +28,8 @@ spec:
         value: "true"
         effect: "NoSchedule"
       restartPolicy: Always
+#      nodeSelector:
+#        logging: "true"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -60,25 +62,7 @@ spec:
         securityContext:
           privileged: true
       containers:
-#      - name: indices-cleaner
-#        image: "ibmcom/indices-cleaner:0.2"
-#        image: "elasticsearch_zcp"
-#        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
-#        imagePullPolicy: IfNotPresent
-#        volumeMounts:
-#        - name: actionfile
-#          mountPath: /action.yml
-#          subPath: action.yml
-#        - name: localtime
-#          mountPath: "/etc/localtime"
-#          readOnly: true
-#        - name: config
-#          mountPath: /etc/curator.yml
-#          subPath: curator.yml
-#        - name: cron
-#          mountPath: /etc/cron.d/curator-cron
-#          subPath: curator-cron
-      - name: es-client
+      - name: es-master
         securityContext:
           privileged: false
           capabilities:
@@ -90,16 +74,13 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
           limits:
-            memory: "1024M"
+            memory: "2048M"
         env:
         - name: "ES_JAVA_OPTS"
-          value: "-Xms256m -Xmx256m"
+          value: "-Xms512m -Xmx512m"
         ports:
-        - containerPort: 9200
-          name: rest
-          protocol: TCP
         - containerPort: 9300
-          name: internal
+          name: transport
           protocol: TCP
         volumeMounts:
         - name: "elasticsearch-data"
@@ -108,32 +89,11 @@ spec:
           mountPath: "/usr/share/elasticsearch/config/elasticsearch.yml"
           subPath: elasticsearch.yml
       volumes:
-      - name: "elasticsearch-data"
-        emptyDir: {}
-      - name: "elasticsearch-conf"
-        configMap:
-          name: es-configmap
-          items:
-            - key: client.yml
-              path: elasticsearch.yml
-#      - name: "actionfile"
-#        configMap:
-#          name: es-curator
-#          items:
-#            - key: action.yml
-#              path: action.yml
-#      - name: "localtime"
-#        hostPath:
-#          path: /etc/localtime
-#      - name: "config"
-#        configMap:
-#          name: es-curator
-#          items:
-#            - key: config.yml
-#              path: curator.yml
-#      - name: "cron"
-#        configMap:
-#          name: es-curator
-#          items:
-#            - key: cron
-#              path: curator-cron
+        - name: "elasticsearch-data"
+          emptyDir: {}
+        - name: "elasticsearch-conf"
+          configMap:
+            name: es-configmap
+            items:
+              - key: master.yml
+                path: elasticsearch.yml

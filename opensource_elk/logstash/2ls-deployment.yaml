@@ -48,7 +48,7 @@ spec:
         image: "docker.elastic.co/logstash/logstash:6.2.4"
         resources:
           limits:
-            memory: "512M"
+            memory: "1024M"
         name: logstash
         ports:
         - containerPort: 5044

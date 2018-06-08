@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: logstash-config
-  namespace: zcp-logging
+  namespace: zcp-system
 data:
   logstash.yml: |-
     config.reload.automatic: true
