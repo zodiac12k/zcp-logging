@@ -1,0 +1,90 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: elasticsearch
+    component: elasticsearch
+    role: client
+  name: elasticsearch-client
+  namespace: zcp-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+        component: elasticsearch
+        role: client
+    spec:
+      tolerations:
+      - key: "logging"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      restartPolicy: Always
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - "amd64"
+              - key: role 
+                operator: In
+                values:
+                - "logging"
+      initContainers:
+      - name: "chmod"
+        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
+        imagePullPolicy: "IfNotPresent"
+        command: ["chmod", "777", "/data-dir"]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: elasticsearch-data
+          mountPath: /data-dir
+      - name: "sysctl"
+        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
+        imagePullPolicy: "IfNotPresent"
+        command: ["sysctl", "-w", "vm.max_map_count=262144"]
+        securityContext:
+          privileged: true
+      containers:
+      - name: es-client
+        securityContext:
+          privileged: false
+          capabilities:
+            add:
+              - IPC_LOCK
+        image: "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: "1024M"
+        env:
+        - name: "ES_JAVA_OPTS"
+          value: "-Xms256m -Xmx256m"
+        ports:
+        - containerPort: 9200
+          name: rest
+          protocol: TCP
+        - containerPort: 9300
+          name: internal
+          protocol: TCP
+        volumeMounts:
+        - name: "elasticsearch-data"
+          mountPath: "/usr/share/elasticsearch/data"
+        - name: "elasticsearch-conf"
+          mountPath: "/usr/share/elasticsearch/config/elasticsearch.yml"
+          subPath: elasticsearch.yml
+      volumes:
+      - name: "elasticsearch-data"
+        emptyDir: {}
+      - name: "elasticsearch-conf"
+        configMap:
+          name: es-configmap
+          items:
+            - key: client.yml
+              path: elasticsearch.yml
