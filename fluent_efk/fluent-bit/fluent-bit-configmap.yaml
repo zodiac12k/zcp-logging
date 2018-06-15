@@ -24,7 +24,7 @@ data:
     [INPUT]
         Name              tail
         Tag               kube.*
-        Path              /var/log/containers/*.log
+        Path              /var/lib/docker/containers/*/*.log
         Parser            docker
         DB                /var/log/flb_kube.db
         Mem_Buf_Limit     5MB
@@ -41,8 +41,8 @@ data:
     [OUTPUT]
         Name            es
         Match           *
-        Host            ${FLUENT_ELASTICSEARCH_HOST}
-        Port            ${FLUENT_ELASTICSEARCH_PORT}
+        Host            elasticsearch
+        Port            9200
         Logstash_Format On
         Retry_Limit     False
   parsers.conf: |

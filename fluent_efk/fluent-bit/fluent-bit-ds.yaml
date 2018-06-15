@@ -19,6 +19,8 @@ spec:
         prometheus.io/port: "2020"
         prometheus.io/path: /api/v1/metrics/prometheus
     spec:
+      tolerations:
+      - operator: Exists
       containers:
       - name: fluent-bit
         image: fluent/fluent-bit:0.13.2
@@ -50,7 +52,7 @@ spec:
         configMap:
           name: fluent-bit-config
       serviceAccountName: fluent-bit
-      tolerations:
-      - key: node-role.kubernetes.io/master
-        operator: Exists
-        effect: NoSchedule
+#      tolerations:
+#      - key: node-role.kubernetes.io/master
+#        operator: Exists
+#        effect: NoSchedule

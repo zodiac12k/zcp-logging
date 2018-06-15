@@ -115,5 +115,5 @@ spec:
         - ReadWriteOnce
       resources:
         requests:
-          storage: "20Gi"
+          storage: "200Gi"
       storageClassName: "ibmc-block-bronze"

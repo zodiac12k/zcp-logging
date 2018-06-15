@@ -16,11 +16,11 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   path: /
   hosts:
-    - kibana.zcp-demo.jp-tok.containers.mybluemix.net
+    - kibana.cloudzcp.io
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+    - secretName: cloudzcp-io-cert
+      hosts:
+        - kibana.cloudzcp.io
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: elasticsearch-data-elasticsearch-data-0
   annotations:
-    volume.beta.kubernetes.io/storage-class: ibmc-block-bronze
+    volume.beta.kubernetes.io/storage-class: ibmc-block-silver
   labels:
     app: elasticsearch
     component: elasticsearch
@@ -14,5 +14,5 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 200Gi
-  storageClassName: ibmc-block-bronze
+      storage: 100Gi
+  storageClassName: ibmc-block-silver
