@@ -4,7 +4,7 @@ metadata:
   name: fluent-bit-config
   namespace: zcp-system
   labels:
-    k8s-app: fluent-bit
+    app: fluent-bit
 data:
   # Configuration files: server, input, filters and output
   # ======================================================
@@ -19,12 +19,12 @@ data:
         HTTP_Port     2020
     @INCLUDE input-kubernetes.conf
     @INCLUDE filter-kubernetes.conf
-    @INCLUDE output-elasticsearch.conf
+    @INCLUDE output-fluentd.conf
   input-kubernetes.conf: |
     [INPUT]
         Name              tail
         Tag               kube.*
-        Path              /var/lib/docker/containers/*/*.log
+        Path              /var/log/containers/*.log
         Parser            docker
         DB                /var/log/flb_kube.db
         Mem_Buf_Limit     5MB
@@ -37,14 +37,13 @@ data:
         Kube_URL            https://kubernetes.default.svc.cluster.local:443
         Merge_Log           On
         K8S-Logging.Parser  On
-  output-elasticsearch.conf: |
+  output-fluentd.conf: |
     [OUTPUT]
-        Name            es
+        Name            forward
         Match           *
-        Host            elasticsearch
-        Port            9200
-        Logstash_Format On
-        Retry_Limit     False
+        Host            fluentd-aggregator
+        Port            24224
+        Time_as_Integer True
   parsers.conf: |
     [PARSER]
         Name   apache
@@ -81,7 +80,7 @@ data:
         Time_Keep   On
         # Command      |  Decoder | Field | Optional Action
         # =============|==================|=================
-        Decode_Field_As   escaped    log
+        Decode_Field_As    json      log
     [PARSER]
         Name        syslog
         Format      regex

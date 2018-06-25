@@ -4,14 +4,14 @@ metadata:
   name: fluent-bit
   namespace: zcp-system
   labels:
-    k8s-app: fluent-bit-logging
+    app: fluent-bit-logging
     version: v1
     kubernetes.io/cluster-service: "true"
 spec:
   template:
     metadata:
       labels:
-        k8s-app: fluent-bit-logging
+        app: fluent-bit-logging
         version: v1
         kubernetes.io/cluster-service: "true"
       annotations:
@@ -28,15 +28,15 @@ spec:
         ports:
           - containerPort: 2020
         env:
-        - name: FLUENT_ELASTICSEARCH_HOST
-          value: "elasticsearch"
-        - name: FLUENT_ELASTICSEARCH_PORT
-          value: "9200"
+#        - name: FLUENT_ELASTICSEARCH_HOST
+#          value: "elasticsearch"
+#        - name: FLUENT_ELASTICSEARCH_PORT
+#          value: "9200"
         volumeMounts:
         - name: varlog
           mountPath: /var/log
         - name: varlibdockercontainers
-          mountPath: /var/lib/docker/containers
+          mountPath: /var/data/cripersistentstorage/containers/ 
           readOnly: true
         - name: fluent-bit-config
           mountPath: /fluent-bit/etc/
@@ -47,7 +47,7 @@ spec:
           path: /var/log
       - name: varlibdockercontainers
         hostPath:
-          path: /var/lib/docker/containers
+          path: /var/data/cripersistentstorage/containers/
       - name: fluent-bit-config
         configMap:
           name: fluent-bit-config

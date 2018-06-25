@@ -1,5 +1,5 @@
 cd ~/git/zcp-logging/fluent_efk/elasticsearch/
-./create_es.sh
+./2create_es.sh
 cd ~/git/zcp-logging/fluent_efk/kibana/
 ./create_kb.sh
 cd ~/git/zcp-logging/fluent_efk/fluentd
