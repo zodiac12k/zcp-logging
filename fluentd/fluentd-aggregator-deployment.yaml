@@ -1,0 +1,95 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: fluentd-aggregator
+  namespace: zcp-system
+  labels:
+    app: fluentd-aggregator
+    component: log-aggregator
+spec:
+  selector:
+    matchLabels:
+      app: fluentd-aggregator
+      component: log-aggregator
+  replicas: 1
+  minReadySeconds: 5
+  progressDeadlineSeconds: 15
+  revisionHistoryLimit: 5
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: "100%"
+  template:
+    metadata:
+      labels:
+        app: fluentd-aggregator
+        component: log-aggregator
+    spec:
+      tolerations:
+      - key: "logging"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule" 
+      restartPolicy: Always
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - "amd64"
+              - key: role
+                operator: In
+                values:
+                - "logging"
+      containers:
+      - name: fluentd-aggregator
+        image: registry.au-syd.bluemix.net/cloudzcp/fluentd:v0.12-debian-elasticsearch
+        imagePullPolicy: Always
+        command: ["fluentd", "-c", "/fluentd/etc/fluentd.conf", "-p", "/fluentd/plugins"]
+        env:
+        - name: FLUENTD_CONFIG
+          value: fluentd-aggregator.conf
+        resources:
+          limits:
+            cpu: 2
+            memory: 1024Mi
+          requests:
+            cpu: 1
+            memory: 250Mi
+        ports:
+        - name: fwd-input
+          containerPort: 24224
+          protocol: TCP
+        - name: fwd-input-udp
+          containerPort: 24224
+          protocol: UDP
+        - name: prom-metrics
+          containerPort: 24231
+          protocol: TCP
+        - name: monitor-agent
+          containerPort: 24220
+          protocol: TCP
+        - name: http-input
+          containerPort: 9880
+          protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: 24224
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        volumeMounts:
+        - name: fluentd-config
+          mountPath: /fluentd/etc
+      volumes:
+      - name: fluentd-config
+        configMap:
+          name: "fluentd-config"
+      # Give the aggregator ample time to flush it's logs
+      terminationGracePeriodSeconds: 160
+      serviceAccountName: zcp-system-admin
+#      imagePullSecrets:
+#        - name: bluemix-cloudzcp-secret
+

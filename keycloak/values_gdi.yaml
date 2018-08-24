@@ -1,0 +1,71 @@
+replicaCount: 1
+
+image:
+  repository: jboss/keycloak-proxy
+  tag: 4.2.0.Final
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true 
+  annotations:
+    ingress.bluemix.net/redirect-to-https: "True"
+    ingress.bluemix.net/ALB-ID: private-crd141bb7f5a0047f180fe05ed4b5404a5-alb1
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - gdi-logging.cloudzcp.io
+  tls: 
+    - secretName: cloudzcp-io-cert
+      hosts:
+        - gdi-logging.cloudzcp.io
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+affinity: {}
+
+tolerations:
+- key: "management"
+  operator: "Equal"
+  value: "true"
+  effect: "NoSchedule"
+restartPolicy: Always
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: beta.kubernetes.io/arch
+          operator: In
+          values:
+          - "amd64"
+        - key: role
+          operator: In
+          values:
+          - "management"
+
+configmap:
+  targetUrl: http://kibana:5602/
+  realm: zcp
+  realmPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr4qREZsNEo8mCKSJuuauBbaPoMSXhSZM6rBBlco1QtllUH0m55g92fmVXR+atKAxG1b1MCjPFPvHMxN37Ayb8UhnIoxhRNBtjKqqSXBLd5okcewbNduKhPzuSVDdjIuv1SwXbWhbvwhJ3lYAQmexN+W9UgOX3nwdlbsCOiW63F+gSincjDyhsVbt2jzlvCU9Aqhd1EAlkHfAx8J8a5kY0sXd8+XRUOBFINWmN/vpV7teEDpFMVPyIMeQtUP8NlkUPF7dOorxkBA7uiBROzyvfLpB554AZ1hWKT3A8DJiRa6cM9m68w5tS/DcN7G+2W15lbHFt+F+4BLMpmU4JgVtUwIDAQAB"
+  authServerUrl: https://gdi-iam.cloudzcp.io/auth
+  resource: logging
+  secret: 69ca391e-4999-4779-96cc-6aef4875ea46
+  pattern: /*	
+  rolesAllowed: admin

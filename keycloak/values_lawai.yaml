@@ -1,0 +1,75 @@
+replicaCount: 1
+
+image:
+  repository: jboss/keycloak-proxy
+  tag: 4.2.0.Final
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true 
+  annotations:
+    ingress.bluemix.net/redirect-to-https: "True"
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - logging.hklaw.co.kr
+  tls: 
+    - secretName: hklaw-co-kr-cert
+      hosts:
+        - logging.hklaw.co.kr
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+affinity: {}
+
+#tolerations:
+#  - key: "logging"
+#    operator: "Equal"
+#    value: "true"
+#    effect: "NoSchedule"
+tolerations:
+- key: "management"
+  operator: "Equal"
+  value: "true"
+  effect: "NoSchedule"
+restartPolicy: Always
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: beta.kubernetes.io/arch
+          operator: In
+          values:
+          - "amd64"
+        - key: role
+          operator: In
+          values:
+          - "management"
+
+configmap:
+  targetUrl: http://kibana:5602/
+  realm: zcp
+  realmPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3/6nV8U9t9U/jJKodPOv/mJDLvD3tSSErOEakOv6RHC5UANu0Dgwoaxa2Bsy+HhYOJMme3JNLZb+lyh4e2BOrIboAqTZVWk7fY2G/QNDPUHZmPeyF2ROQBNIEIYrGwNKnUlsotJhm/hp/47QDxjZvipgEBGHNliiulb+bWM8NICfOBwn6NTafqHxoneNz1WjQO9xDA6aPIqFJJiWpACwJP9gJYOPzJVfalCOMT+TElYxC/gDUPhGdrbMMEkxmYw8GoxvQ9n1kJ2ydXUzjUgBBBWgjRGiorSSRbXsECIRKlVHPgBEiaWF5qWa2i+fO3nN/chmbS3+9wmzOPLBDwi7hQIDAQAB"
+  authServerUrl: https://iam.hklaw.co.kr/auth
+  resource: logging
+  secret: 69ca391e-4999-4779-96cc-6aef4875ea46
+  pattern: /*	
+  rolesAllowed: admin

@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: es-configmap
+  namespace: zcp-system
+data:
+  master.yml: |-
+    cluster.name: "elasticsearch-cluster"
+    network.host: 0.0.0.0
+    discovery.zen.ping.unicast.hosts: elasticsearch-discovery
+    discovery.zen.minimum_master_nodes: 1
+    node.master: true
+    node.data: false
+    xpack.security.enabled: false
+    http:
+      host: 0.0.0.0
+      enabled: true
+      compression: true
+      cors:
+        enabled: true
+        allow-origin: "*"
+    s3.client.default.endpoint: s3.seo-ap-geo.objectstorage.softlayer.net
+#    s3.client.default.access_key: fcJyRzXW8UKvV1rRSbfK
+#    s3.client.default.secret_key: 4WZm9j9rZkoLBEb00mtLZCO2sXBVUdaRtoKttBgo
+
+  data.yml: |-
+    cluster.name: "elasticsearch-cluster"
+    network.host: 0.0.0.0
+    discovery.zen.ping.unicast.hosts: elasticsearch-discovery
+    discovery.zen.minimum_master_nodes: 1
+    node.master: false
+    node.data: true
+    xpack.security.enabled: false
+    http:
+      host: 0.0.0.0
+      enabled: true
+      compression: true
+      cors:
+        enabled: true
+        allow-origin: "*"
+    s3.client.default.endpoint: s3.seo-ap-geo.objectstorage.softlayer.net
+#    s3.client.default.access_key: fcJyRzXW8UKvV1rRSbfK
+#    s3.client.default.secret_key: 4WZm9j9rZkoLBEb00mtLZCO2sXBVUdaRtoKttBgo
+
+  client.yml: |-
+    cluster.name: "elasticsearch-cluster"
+    network.host: 0.0.0.0
+    discovery.zen.ping.unicast.hosts: elasticsearch-discovery
+    discovery.zen.minimum_master_nodes: 1
+    node.master: false
+    node.data: false
+    xpack.security.enabled: false
+    http:
+      host: 0.0.0.0
+      enabled: true
+      compression: true
+      cors:
+        enabled: true
+        allow-origin: "*"
+    s3.client.default.endpoint: s3.seo-ap-geo.objectstorage.softlayer.net
+#    s3.client.default.access_key: fcJyRzXW8UKvV1rRSbfK
+#    s3.client.default.secret_key: 4WZm9j9rZkoLBEb00mtLZCO2sXBVUdaRtoKttBgo
