@@ -1,0 +1,60 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: kibana
+    component: kibana
+  name: kibana
+  namespace: zcp-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kibana
+        component: kibana
+    spec:
+      tolerations:
+      - key: "logging"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - "amd64"
+              - key: role
+                operator: In
+                values:
+                - "logging"
+      restartPolicy: Always
+      containers:
+      - name: kibana
+        image: "registry.au-syd.bluemix.net/cloudzcp/kibana:6.3.1"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5602
+        volumeMounts:
+        - name: "kibana-conf"
+          mountPath: "/usr/share/kibana/config/kibana.yml"
+          subPath: kibana.yml
+        - name: cache
+          mountPath: /usr/share/kibana/optimize
+      volumes:
+        - emptyDir:
+            medium: ""
+          name: cache
+        - name: "kibana-conf"
+          configMap:
+            name: kibana-config
+            items:
+              - key: kibana.yml
+                path: kibana.yml
+#      imagePullSecrets:
+#        - name: bluemix-cloudzcp-secret
+      serviceAccountName: zcp-system-admin
