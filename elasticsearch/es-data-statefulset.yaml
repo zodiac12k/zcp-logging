@@ -100,7 +100,7 @@ spec:
         app: elasticsearch
         component: elasticsearch
         namespace: zcp-system
-        billingType: "monthly"
+#        billingType: "monthly"
       annotations: 
         volume.beta.kubernetes.io/storage-class: ibmc-block-retain-silver
     spec:
