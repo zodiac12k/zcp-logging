@@ -196,8 +196,8 @@ $ helm del --purge zcp-sso-for-logging
 
 5. 생성된 ingress 확인
 - 확인사항
-HOSTS 명 : 해당 클러스터의 로깅 도메인명
-ADDRESS : IP ADDR가 정상적으로 할당 
+> HOSTS 명 : 해당 클러스터의 로깅 도메인명  
+> ADDRESS : IP ADDR가 정상적으로 할당 
 
 ```sh
 $ kubectl get ingress
