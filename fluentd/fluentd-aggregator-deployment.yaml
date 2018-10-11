@@ -46,7 +46,7 @@ spec:
                 - "logging"
       containers:
       - name: fluentd-aggregator
-        image: registry.au-syd.bluemix.net/cloudzcp/fluentd:v0.12-debian-elasticsearch
+        image: registry.au-syd.bluemix.net/cloudzcp/fluentd:v1.0.0-125
         imagePullPolicy: Always
         command: ["fluentd", "-c", "/fluentd/etc/fluentd.conf", "-p", "/fluentd/plugins"]
         env:
@@ -90,6 +90,6 @@ spec:
       # Give the aggregator ample time to flush it's logs
       terminationGracePeriodSeconds: 160
       serviceAccountName: zcp-system-admin
-#      imagePullSecrets:
-#        - name: bluemix-cloudzcp-secret
+      imagePullSecrets:
+        - name: bluemix-cloudzcp-secret
 
