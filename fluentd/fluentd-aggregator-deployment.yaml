@@ -46,7 +46,7 @@ spec:
                 - "logging"
       containers:
       - name: fluentd-aggregator
-        image: registry.au-syd.bluemix.net/cloudzcp/fluentd:v1.0.0-125
+        image: registry.au-syd.bluemix.net/cloudzcp/fluentd:1.0.0-125
         imagePullPolicy: Always
         command: ["fluentd", "-c", "/fluentd/etc/fluentd.conf", "-p", "/fluentd/plugins"]
         env:
