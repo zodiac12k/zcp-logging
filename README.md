@@ -186,7 +186,7 @@ configmap:
 
 4. Helm 설치
 ```sh
-$ helm install --name zcp-sso-for-logging --namespace zcp-system -f values_labs.yaml zcp/zcp-sso
+$ helm install --name zcp-sso-for-logging --namespace zcp-system -f values.yaml zcp/zcp-sso
 ```
 
 <참고> 잘못 올라간 helm 지우고 싶을 때는 아래 명령어를 사용.
@@ -195,7 +195,7 @@ $ helm del --purge zcp-sso-for-logging
 ```
 <참고> private repository 이용 시에는 주소 추가
 ```
-helm install --name zcp-sso-for-logging --namespace zcp-system -f values_skip.yaml zcp/zcp-sso --set image.repository=registry.au-syd.bluemix.net/cloudzcp/keycloak-proxy,image.tag=3.4.2.Final
+helm install --name zcp-sso-for-logging --namespace zcp-system -f values.yaml zcp/zcp-sso --set image.repository=registry.au-syd.bluemix.net/cloudzcp/keycloak-proxy,image.tag=3.4.2.Final
 ```
 
 5. 생성된 ingress 확인
