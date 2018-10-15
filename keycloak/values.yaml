@@ -16,11 +16,11 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   path: /
   hosts:
-    - kibana.zcp-dev.jp-tok.containers.mybluemix.net
-  tls: 
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+    - kibana.cloudzcp.io
+  tls:
+    - secretName: cloudzcp-io-cert
+      hosts:
+        - kibana.cloudzcp.io
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -40,12 +40,18 @@ tolerations: []
 
 affinity: {}
 
+tolerations:
+  - key: "logging"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
 configmap:
   targetUrl: http://kibana:5602/
   realm: zcp
-  realmPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiwJG249ll0vpZF5bJLkxRkZgY+jTQn/VNmfOUKVch/Rxu07oZIrGWlboLrgvrQ/RVRPyPkMx5kf/1elxwCvvHmefuibsJKk2nvQIGEtNl6kQ3k2myGlkmrrMgiAoYQIWzu8nTI1RKcUb52HKhZ9PMdb5msOrpxUnKQVU9eyp6NrcV4UaUp1MOG7f63u7Sx9VGbhOXJyHfUIFMvLAVsubObrEZW4Qd8bSGz0s/sN1sxBjXAiKsVOQma7JlU9mY3VVHls+vS9iBvy/e9TpZFBmo8F7ijm8gSnMWyhhhm4vkE8Zq7KK6bo0JTNt+ciqGrI8kEm8yde6QSqo2iAZDzV+BQIDAQAB"
-  authServerUrl: https://keycloak.cberry.xyz/auth
+  realmPublicKey: #PublicKey of zcp realm
+  authServerUrl: https://keycloak.cloudzcp.io/auth
   resource: kibana
-  secret: cfae0ea1-c0e3-4fa5-a40a-2783bd5b1a55 
+  secret: 254d9dcc-c27f-48a2-8e7d-70ef1abbc401
   pattern: /*	
-  rolesAllowed: admin
+  rolesAllowed: log-manager
