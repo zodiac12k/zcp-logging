@@ -53,7 +53,7 @@ spec:
           privileged: true
       containers:
       - name: indices-cleaner
-        image: "registry.au-syd.bluemix.net/cloudzcp/elasticsearch:6.3.1"
+        image: "registry.au-syd.bluemix.net/cloudzcp/indices-cleaner:0.2"
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - name: actionfile
