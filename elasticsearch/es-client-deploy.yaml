@@ -59,8 +59,6 @@ spec:
         - name: actionfile
           mountPath: /action.yml
           subPath: action.yml
-        - name: localtime
-          mountPath: "/etc/localtime"
           readOnly: true
         - name: config
           mountPath: /etc/curator.yml
@@ -68,6 +66,8 @@ spec:
         - name: cron
           mountPath: /etc/cron.d/curator-cron
           subPath: curator-cron
+        - name: timezone
+          mountPath: /etc/localtime
       - name: es-client
         securityContext:
           privileged: false
@@ -95,9 +95,14 @@ spec:
         - name: "elasticsearch-conf"
           mountPath: "/usr/share/elasticsearch/config/elasticsearch.yml"
           subPath: elasticsearch.yml
+        - name: timezone
+          mountPath: /etc/localtime
       volumes:
       - name: "elasticsearch-data"
         emptyDir: {}
+      - name: timezone
+        hostPath:
+          path: /usr/share/zoneinfo/Asia/Seoul
       - name: "elasticsearch-conf"
         configMap:
           name: es-configmap
@@ -110,9 +115,6 @@ spec:
           items:
             - key: action.yml
               path: action.yml
-      - name: "localtime"
-        hostPath:
-          path: /etc/localtime
       - name: "config"
         configMap:
           name: es-curator
@@ -125,6 +127,4 @@ spec:
           items:
             - key: cron
               path: curator-cron
-#      imagePullSecrets:
-#        - name: bluemix-cloudzcp-secret
       serviceAccountName: zcp-system-admin

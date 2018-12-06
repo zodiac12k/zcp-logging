@@ -76,6 +76,8 @@ spec:
         - name: "elasticsearch-conf"
           mountPath: "/usr/share/elasticsearch/config/elasticsearch.yml"
           subPath: elasticsearch.yml
+        - name: timezone
+          mountPath: /etc/localtime
       volumes:
         - name: "elasticsearch-data"
           emptyDir: {}
@@ -85,6 +87,7 @@ spec:
             items:
               - key: master.yml
                 path: elasticsearch.yml
-#      imagePullSecrets:
-#        - name: bluemix-cloudzcp-secret
+        - name: timezone
+          hostPath:
+            path: /usr/share/zoneinfo/Asia/Seoul
       serviceAccountName: zcp-system-admin
