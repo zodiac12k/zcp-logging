@@ -6,17 +6,12 @@ metadata:
   labels:
     app: fluent-bit
 data:
-  # Configuration files: server, input, filters and output
-  # ======================================================
   fluent-bit.conf: |
     [SERVICE]
         Flush         1
         Log_Level     info
         Daemon        off
         Parsers_File  parsers.conf
-        HTTP_Server   On
-        HTTP_Listen   0.0.0.0
-        HTTP_Port     2020
     @INCLUDE input-kubernetes.conf
     @INCLUDE filter-kubernetes.conf
     @INCLUDE output-fluentd.conf
@@ -28,22 +23,49 @@ data:
         Parser            docker
         DB                /var/log/flb_kube.db
         Mem_Buf_Limit     5MB
-        Skip_Long_Lines   On
+        Refresh_Interval  10
+        Exclude_Path   /var/log/containers/fluentd-aggregator*
+    [INPUT]
+        Name              tail
+        Tag               kubemeta.*
+        Path              /var/log/*.log
+        Path_Key          file
+        Parser            kubemeta
+        DB                /var/log/flb_kubemeta.db
+        Mem_Buf_Limit     5MB
+        Refresh_Interval  10
+    [INPUT]
+        Name              tail
+        Tag               ingress.*
+        Path              /var/log/containers/p*-alb*_kube-system_*.log
+        Parser            nginx-ingress
+        DB                /var/log/flb_ingress.db
+        Mem_Buf_Limit     5MB
         Refresh_Interval  10
   filter-kubernetes.conf: |
     [FILTER]
         Name                kubernetes
         Match               kube.*
         Kube_URL            https://kubernetes.default.svc.cluster.local:443
-        Merge_Log           On
+        Merge_Log           Off
+        K8S-Logging.Parser  On
+    [FILTER]
+        Name                record_modifier
+        Match               kubemeta.*
+        Record              node_name ${NODE_NAME}
+    [FILTER]
+        Name                kubernetes
+        Match               ingress.*
+        Kube_URL            https://kubernetes.default.svc.cluster.local:443
+        Merge_Log           Off
         K8S-Logging.Parser  On
   output-fluentd.conf: |
     [OUTPUT]
-        Name            forward
-        Match           *
-        Host            fluentd-aggregator
-        Port            24224
-        Time_as_Integer True
+       Name            forward
+       Match           *
+       Host            fluentd-aggregator
+       Port            24224
+       Time_as_Integer True
   parsers.conf: |
     [PARSER]
         Name   apache
@@ -72,6 +94,7 @@ data:
         Format json
         Time_Key time
         Time_Format %d/%b/%Y:%H:%M:%S %z
+        Decode_Field_as escaped_utf8 log
     [PARSER]
         Name        docker
         Format      json
@@ -80,10 +103,33 @@ data:
         Time_Keep   On
         # Command      |  Decoder | Field | Optional Action
         # =============|==================|=================
-        Decode_Field_As    json      log
+        Decode_Field_As    escaped_utf8      log
     [PARSER]
         Name        syslog
         Format      regex
         Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
         Time_Key    time
         Time_Format %b %d %H:%M:%S
+    [PARSER]
+        Format regex
+        Name java_multiline
+        Regex (?<apptime>\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}\.\d{2,3})  (?<level>[^ ]*) (?<pid>[^ ]*) --- \[(?<thread>[^\]]*)\] *(?<message>.*)$
+        Time_Format %Y-%m-%d %H:%M:%S.%L
+        Time_Keep On
+        Time_Key apptime
+    [PARSER]
+        Name        kubemeta
+        Format      regex
+        Regex       (?<apptime>^\D{3} (\s\d{1}|\d{1,2}) \d{2}:\d{2}:\d{2})(?<log>.*)
+        Time_Format %b %d %H:%M:%S
+        Time_Key    apptime
+        Time_Keep   On
+    [PARSER]
+        Name        nginx-ingress
+        Format      json
+        Time_Key    time_date
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep   On
+        # Command      |  Decoder | Field | Optional Action
+        # =============|==================|=================
+        Decode_Field_As    escaped      log

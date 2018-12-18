@@ -6,81 +6,37 @@ metadata:
   labels:
     app: fluentd
 data:
-  fluentd.conf: |
-    @include "#{ENV['FLUENTD_CONFIG'] || 'fluentd-standalone.conf'}"
   fluentd-aggregator.conf: |
     # Receive from the forwarder
     @include forward-input.conf
-    @include general.conf
-    @include prometheus.conf
     @include kubernetes-filter.conf
     # Send to storage
     @include output.conf
+  fluentd.conf: |
+    @include "#{ENV['FLUENTD_CONFIG'] || 'fluentd-standalone.conf'}"
   forward-input.conf: |
     <system>
       # equal to -qq option
-      log_level trace
+      log_level info
     </system>
     <source>
       @type forward
       port 24224
       bind 0.0.0.0
     </source>
-  general.conf: |
-    # Prevent fluentd from handling records containing its own logs. Otherwise
-    # it can lead to an infinite loop, when error in sending one message generates
-    # another message which also fails to be sent and so on.
-    <match fluent.**>
-      @type null
-    </match>
-    # Used for health checking
-    <source>
-      @type http
-      port 9880
-      bind 0.0.0.0
-    </source>
-    # Emits internal metrics to every minute, and also exposes them on port
-    # 24220. Useful for determining if an output plugin is retryring/erroring,
-    # or determining the buffer queue length.
-    <source>
-      @type monitor_agent
-      bind 0.0.0.0
-      port 24220
-      tag fluentd.monitor.metrics
-    </source>
-  prometheus.conf: |
-    # input plugin that is required to expose metrics by other prometheus
-    # plugins, such as the prometheus_monitor input below.
-    <source>
-      @type prometheus
-      bind 0.0.0.0
-      port 24231
-      metrics_path /metrics
-    </source>
-    # input plugin that collects metrics from MonitorAgent and exposes them
-    # as prometheus metrics
-    <source>
-      @type prometheus_monitor
-      # update the metrics every 5 seconds
-      interval 5
-    </source>
-    <source>
-      @type prometheus_output_monitor
-      interval 5
-    </source>
-    <source>
-      @type prometheus_tail_monitor
-      interval 5
-    </source>
   kubernetes-filter.conf: |
-    # <filter kube.**>
-    #   @type kubernetes_metadata
-    #   @id filter_platform_metadata
-    # </filter>
+    <filter kube.**>
+      @type record_transformer
+      enable_ruby true
+      <record>
+        new_index ${record["kubernetes"]["namespace_name"]}-${time.strftime('%Y.%m.%d')}
+      </record>
+    </filter>
     <filter kube.**>
       @type concat
       key log
-      multiline_start_regexp /(?<apptime>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})/
+      multiline_start_regexp /(?<apptime>^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}|^\d{2}:\d{2}:\d{2}.\d{3}|^\d{4}\d{2}\d{2}\s\d{2}:\d{2}:\d{2}.\d{3})/
+      flush_interval 1
       timeout_label @PLATFORM
       separator ""
     </filter>
@@ -89,9 +45,17 @@ data:
       @label @PLATFORM
     </match>
     <filter app.**>
+      @type record_transformer
+      enable_ruby true
+      <record>
+        new_index ${record["kubernetes"]["kubernetes.namespace_name"]}-${time.strftime('%Y.%m.%d')}
+      </record>
+    </filter>
+    <filter app.**>
       @type concat
-      key appli
-      multiline_start_regexp /(?<apptime>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})/
+      key log
+      multiline_start_regexp /(?<apptime>^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}|^\d{2}:\d{2}:\d{2}.\d{3}|^\d{4}\d{2}\d{2}\s\d{2}:\d{2}:\d{2}.\d{3})/
+      flush_interval 1
       timeout_label @APP
       separator ""
     </filter>
@@ -99,12 +63,53 @@ data:
       @type relabel
       @label @APP
     </match>
-    <filter kube.**>
+    <match ingress.**>
+      @type rewrite_tag_filter
+      <rule>
+        key     log
+        pattern /^\s*$/
+        tag clear
+      </rule>
+      <rule>
+        key     log
+        pattern /{\".*}/
+        tag     access.${tag}
+      </rule>
+      <rule>
+        key     log
+        pattern /.*/
+        tag     info.${tag}
+      </rule>
+    </match>
+    <match clear>
+      @type null
+    </match>
+    <filter access.ingress.**>
       @type parser
-      format json # apache2, nginx, etc...
       key_name log
+      <parse>
+        @type json
+      </parse>
       reserve_data true
     </filter>
+    <filter info.ingress.**>
+      @type concat
+      key log
+      multiline_start_regexp /((?<level>^[IE])?(?<apptime>(\d{4} \d{2}:\d{2}:\d{2}.\d{6})|(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2})))/
+      flush_interval 1
+      timeout_label @INGRESS
+      separator ""
+    </filter>
+    <filter *.ingress.**>
+      @type record_transformer
+      <record>
+        log_type ${tag_prefix[0]}
+      </record>
+    </filter>
+    <match *.ingress.**>
+      @type relabel
+      @label @INGRESS
+    </match>
   output.conf: |
     <label @PLATFORM>
       <match kube.**>
@@ -119,23 +124,15 @@ data:
         ssl_verify false
         logstash_format true
         # logstash_prefix fluentd-kubernetes_namespace_name
-        template_file /fluentd/etc/zcp-platform.json
-        template_name zcp-platform.json
+        template_file /fluentd/etc/application-log.json
+        template_name application-log.json
+        target_index_key new_index
         buffer_chunk_limit 2M
         buffer_queue_limit 32
         flush_interval 10s
         max_retry_wait 30
         disable_retry_limit
         num_threads 8
-      </match>
-      <match kube.**>
-        @type file
-        path /var/log/fluent/platform
-        time_slice_format %Y%m%d
-        time_slice_wait 1m
-        time_format %Y%m%dT%H%M%S%z
-        # compress gzip
-        utc
       </match>
     </label>
     <label @APP>
@@ -153,83 +150,64 @@ data:
         logstash_prefix application
         template_file /fluentd/etc/application-log.json
         template_name application-log.json
+    target_index_key new_index
         buffer_chunk_limit 2M
         buffer_queue_limit 32
-        flush_interval 10s
+        flush_interval 2s
         max_retry_wait 30
         disable_retry_limit
         num_threads 8
       </match>
-      <match app.**>
-        @type file
-        path /var/log/fluent/applog
-        time_slice_format %Y%m%d
-        time_slice_wait 1m
-        time_format %Y%m%dT%H%M%S%z
-        # compress gzip
-        utc
+    </label>
+    <match kubemeta.**>
+      @type elasticsearch
+      @log_level info
+      include_tag_key true
+      # Replace with the host/port to your Elasticsearch cluster.
+      # This assumes a service `elasticsearch` exists in the default namespace
+      host elasticsearch
+      port 9200
+      scheme http
+      ssl_verify false
+      logstash_format true
+      logstash_prefix kubemeta
+      template_file /fluentd/etc/application-log.json
+      template_name application-log.json
+      buffer_chunk_limit 2M
+      buffer_queue_limit 32
+      flush_interval 2s
+      max_retry_wait 30
+      disable_retry_limit
+      num_threads 8
+    </match>
+    <label @INGRESS>
+      <match *.ingress.**>
+        @type elasticsearch
+        @log_level info
+        include_tag_key true
+        # Replace with the host/port to your Elasticsearch cluster.
+        # This assumes a service `elasticsearch` exists in the default namespace
+        host elasticsearch
+        port 9200
+        scheme http
+        ssl_verify false
+        logstash_format true
+        logstash_prefix ingress
+        template_file /fluentd/etc/application-log.json
+        template_name application-log.json
+        buffer_chunk_limit 2M
+        buffer_queue_limit 32
+        flush_interval 2s
+        max_retry_wait 30
+        disable_retry_limit
+        num_threads 8
       </match>
     </label>
-    <match **>
-      @type stdout
-    </match>
-  zcp-platform.json: |
-    {
-      "template" : "logstash-*",
-      "version" : 1,
-      "order" : 1,
-      "settings" : {
-        "index.refresh_interval" : "5s",
-        "number_of_shards": 5,
-        "number_of_replicas": 1
-      },
-      "mappings" : {
-        "_default_" : {
-          "dynamic_templates" : [ {
-            "message_field" : {
-              "path_match" : "message",
-              "match_mapping_type" : "string",
-              "mapping" : {
-                "type" : "text",
-                "norms" : false
-              }
-            }
-          }, {
-            "string_fields" : {
-              "match" : "*",
-              "match_mapping_type" : "string",
-              "mapping" : {
-                "type" : "text", "norms" : false,
-                "fields" : {
-                  "keyword" : {
-                    "type": "keyword",
-                    "ignore_above": 8191
-                  }
-                }
-              }
-            }
-          } ],
-          "properties" : {
-            "@timestamp": { "type": "date" },
-            "@version": { "type": "keyword" },
-            "geoip"  : {
-              "dynamic": true,
-              "properties" : {
-                "ip": { "type": "ip" },
-                "location" : { "type" : "geo_point" },
-                "latitude" : { "type" : "half_float" },
-                "longitude" : { "type" : "half_float" }
-              }
-            }
-          }
-        }
-      }
-    }
   application-log.json: |
     {
-      "template" : "application-*",
+      "template" : "*",
       "version" : 1,
-      "order" : 1,
+      "order" : 10000,
       "settings" : {
         "index.refresh_interval" : "5s",
         "number_of_shards": 5,
@@ -277,4 +255,3 @@ data:
         }
       }
     }
-
