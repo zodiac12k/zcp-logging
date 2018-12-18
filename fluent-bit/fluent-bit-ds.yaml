@@ -30,11 +30,8 @@ spec:
         volumeMounts:
         - name: varlog
           mountPath: /var/log
-        - name: cripersistentstorage
-          mountPath: /var/data/cripersistentstorage/containers/
-          readOnly: true
-        - name: kubeletlogs
-          mountPath: /var/data/kubeletlogs
+        - name: vardata
+          mountPath: /var/data
           readOnly: true
         - name: fluent-bit-config
           mountPath: /fluent-bit/etc/
@@ -50,12 +47,9 @@ spec:
       - name: varlog
         hostPath:
           path: /var/log
-      - name: cripersistentstorage
+      - name: vardata
         hostPath:
-          path: /var/data/cripersistentstorage/containers/
-      - name: kubeletlogs
-        hostPath:
-          path: /var/data/kubeletlogs
+          path: /var/data
       - name: fluent-bit-config
         configMap:
           name: fluent-bit-config
