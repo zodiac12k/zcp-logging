@@ -83,18 +83,12 @@ spec:
         volumeMounts:
         - name: fluentd-config
           mountPath: /fluentd/etc
-        - name: timezone
-          mountPath: /etc/localtime
       volumes:
       - name: fluentd-config
         configMap:
           name: "fluentd-config"
-      - name: timezone
-        hostPath:
-          path: /usr/share/zoneinfo/Asia/Seoul
       # Give the aggregator ample time to flush it's logs
       terminationGracePeriodSeconds: 160
       serviceAccountName: zcp-system-admin
       imagePullSecrets:
         - name: bluemix-cloudzcp-secret
-

@@ -45,8 +45,6 @@ spec:
           subPath: kibana.yml
         - name: cache
           mountPath: /usr/share/kibana/optimize
-        - name: timezone
-          mountPath: /etc/localtime
       volumes:
         - emptyDir:
             medium: ""
@@ -57,7 +55,4 @@ spec:
             items:
               - key: kibana.yml
                 path: kibana.yml
-        - name: timezone
-          hostPath:
-            path: /usr/share/zoneinfo/Asia/Seoul
       serviceAccountName: zcp-system-admin

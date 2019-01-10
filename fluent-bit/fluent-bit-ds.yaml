@@ -35,8 +35,6 @@ spec:
           readOnly: true
         - name: fluent-bit-config
           mountPath: /fluent-bit/etc/
-        - name: timezone
-          mountPath: /etc/localtime
         env:
           - name: NODE_NAME
             valueFrom:
@@ -53,7 +51,4 @@ spec:
       - name: fluent-bit-config
         configMap:
           name: fluent-bit-config
-      - name: timezone
-        hostPath:
-          path: /usr/share/zoneinfo/Asia/Seoul
       serviceAccountName: zcp-system-admin
