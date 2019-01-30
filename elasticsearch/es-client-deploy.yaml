@@ -66,8 +66,6 @@ spec:
         - name: cron
           mountPath: /etc/cron.d/curator-cron
           subPath: curator-cron
-        - name: timezone
-          mountPath: /etc/localtime
       - name: es-client
         securityContext:
           privileged: false
