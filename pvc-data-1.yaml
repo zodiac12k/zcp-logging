@@ -8,7 +8,6 @@ metadata:
     app: elasticsearch
     component: elasticsearch
     role: data
-#    billingType: "hourly"
 spec:
   accessModes:
   - ReadWriteOnce

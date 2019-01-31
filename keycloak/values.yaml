@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: jboss/keycloak-proxy
+  repository: registry.au-syd.bluemix.net/cloudzcp/keycloak-proxy
   tag: 3.4.2.Final
   pullPolicy: IfNotPresent
 
@@ -12,8 +12,8 @@ service:
 ingress:
   enabled: true 
   annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+    # ingress.bluemix.net/ALB-ID: private-cr3d6b18b315544bcc8cdf94926c2d12c0-alb1
+    ingress.bluemix.net/redirect-to-https: "True"
   path: /
   hosts:
     - kibana.cloudzcp.io
@@ -36,9 +36,19 @@ resources: {}
 
 nodeSelector: {}
 
-tolerations: []
-
-affinity: {}
+affinity: 
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: beta.kubernetes.io/arch
+          operator: In
+          values:
+          - amd64
+        - key: role
+          operator: In
+          values:
+          - logging
 
 tolerations:
   - key: "logging"

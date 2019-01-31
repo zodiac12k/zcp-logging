@@ -1,211 +1,289 @@
 # zcp-logging
 
-## Install elasticsearch PV Claim
-1. Data node가 1개인 경우
+## 사전 준비
+* ### Helm client 설치 
+  설치는 각자 알아서 할 것
+  ```
+  $ helm init --client-only
 
-1-1. PVC 생성
-```sh
-$ kubectl create -f pvc.yaml
-persistentvolumeclaim "elasticsearch-data-elasticsearch-data-0" created
-```
+  # Repository 추가
+  $ helm repo add zcp     https://raw.githubusercontent.com/cnpst/charts/master/docs
+  ```
 
-1-2. 생성한 PVC의 상태가 Bound로 되었는지 확인
-```sh
-$ kubectl get pvc
-NAME                                      STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS               AGE
-elasticsearch-data-elasticsearch-data-0   Bound     pvc-e6f4738b-a771-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   8m
-```
+* ### Clone this project into desktop
+  ```
+  $ git clone https://github.com/cnpst/zcp-logging.git
+  ```
+  설치 파일 디렉토리로 이동한다.
+  ```
+  $ cd zcp-logging
+  ```
 
-1-3. PV가 제대로 Bound되었는지 확인
-```sh
-$ kubectl get pv
-NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM                                                STORAGECLASS               REASON    AGE
-pvc-e6f4738b-a771-11e8-84b7-aa133192a9ef   200Gi      RWO            Retain           Bound      zcp-system/elasticsearch-data-elasticsearch-data-0   ibmc-block-retain-silver             4m
-```
+* ### Logging 노드가 1대인 경우 아래 내용 미리 수행
+  * es-data StatefulSet Replicas 수정
+    ```
+    $ vi elasticsearch/es-data-statefulset.yaml
 
-2. data node가 3개인 경우
+    apiVersion: apps/v1beta1
+    kind: StatefulSet
+    metadata:
+      labels:
+        app: elasticsearch
+        component: elasticsearch
+        role: data
+      name: elasticsearch-data
+      namespace: zcp-system
+    spec:
+      updateStrategy:
+        type: RollingUpdate
+      podManagementPolicy: Parallel
+      serviceName: elasticsearch-data
+      replicas: 1 # replicas 값을 3에서 1로 수정
+      template:
+        metadata:
+    ...
+    ```
 
-2-1. PVC 생성
-pvc.yaml안의 pv name의 숫자를 변경해가면서 생성
-```sh
-$vi pvc.yaml
-...
-metadata:
-  name: elasticsearch-data-elasticsearch-data-0 <- 0을 1로 변경
-  annotations:
-    volume.beta.kubernetes.io/storage-class: ibmc-block-retain-silver
-..
-```
+  * es-client deploy 의 affinity, toleration 을 management로 변경
+    > 노드 1개인 경우 리소스 문제로 client 를 management 에 설치
+    ```
+    $ vi elasticsearch/es-client-deploy.yaml
 
-```sh
-$ kubectl create -f pvc.yaml
-persistentvolumeclaim "elasticsearch-data-elasticsearch-data-1" create
-```
+    ...
+    spec:
+      tolerations:
+      - key: "management" # logging 을 management 로 수정
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      restartPolicy: Always
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - "amd64"
+              - key: role 
+                operator: In
+                values:
+                - "management" # logging 을 management 로 수정
+    ...
+    ```
+  * SSO Logging 의 affinity, toleration 을 management로 변경
+    > 노드 1개인 경우 SSO Logging 을 management 에 설치
+    ```
+    $ vi keycloak/values.yaml
 
-```sh
-$ vi pvc.yaml <- 위의 숫자를 2로 변경
-```
+    ...
+    affinity: 
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: beta.kubernetes.io/arch
+              operator: In
+              values:
+              - amd64
+            - key: role
+              operator: In
+              values:
+              - management    # logging 을 management 로 수정
 
-```sh
-$ kubectl create -f pvc.yaml
-persistentvolumeclaim "elasticsearch-data-elasticsearch-data-2" created
-```
+    tolerations:
+      - key: "management"     # logging 을 management 로 수정
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+    ...
+    ```
+  * Fluentd config map 수정
+    > Data 노드가 1개 이므로 Index template 의 shard 를 1 replica 를 0 으로 수정
+    ```
+    vi fluentd/fluentd-configmap.yaml
 
-2-2. 생성한 PVC의 상태가 Bound로 되었는지 확인
-```sh
-$ kubectl get pvc
-NAME                                      STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS               AGE
-elasticsearch-data-elasticsearch-data-0   Bound     pvc-e6f4738b-a771-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   8m
-elasticsearch-data-elasticsearch-data-1   Bound     pvc-13939589-a772-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   7m
-elasticsearch-data-elasticsearch-data-2   Bound     pvc-1961fb18-a772-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   6m
-```
+    ...
+    application-log.json: |
+      {
+        "template" : "*",
+        "version" : 1,
+        "order" : 10000,
+        "settings" : {
+          "index.refresh_interval" : "5s",
+          "number_of_shards": 1,    # 5 에서 1 로 수정
+          "number_of_replicas": 0   # 1 에서 0 으로 수정
+        },
+    ...
+    ```
 
-2-3. PV가 제대로 Bound되었는지 확인
-```sh
-$ kubectl get pv
-NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM                                                STORAGECLASS               REASON    AGE
-pvc-e6f4738b-a771-11e8-84b7-aa133192a9ef   200Gi      RWO            Retain           Bound      zcp-system/elasticsearch-data-elasticsearch-data-0   ibmc-block-retain-silver             4m
-pvc-13939589-a772-11e8-84b7-aa133192a9ef   200Gi      RWO            Retain           Bound      zcp-system/elasticsearch-data-elasticsearch-data-1   ibmc-block-retain-silver             3m
-pvc-1961fb18-a772-11e8-84b7-aa133192a9ef   200Gi      RWO            Retain           Bound      zcp-system/elasticsearch-data-elasticsearch-data-2   ibmc-block-retain-silver             7m
-```
+## Install PVC for elasticsearch
+
+  * Data node가 1개인 경우
+
+    * PVC 생성
+  
+      ```sh
+      $ kubectl create -f pvc-data-1.yaml
+      persistentvolumeclaim "elasticsearch-data-elasticsearch-data-0" created
+      ```
+
+    * 생성한 PVC의 상태가 Bound로 되었는지 확인
+
+      ```sh
+      $ kubectl get pvc
+      NAME                                      STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS               AGE
+      elasticsearch-data-elasticsearch-data-0   Bound     pvc-e6f4738b-a771-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   8m
+      ```
+
+  * Data node가 3개인 경우
+
+    * PVC 생성
+
+      ```sh
+      $ kubectl create -f pvc-data-3.yaml
+      persistentvolumeclaim "elasticsearch-data-elasticsearch-data-0" created
+      persistentvolumeclaim "elasticsearch-data-elasticsearch-data-1" created
+      persistentvolumeclaim "elasticsearch-data-elasticsearch-data-2" created
+      ```
+
+    * 생성한 PVC의 상태가 Bound로 되었는지 확인
+
+      ```sh
+      $ kubectl get pvc
+      NAME                                      STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS               AGE
+      elasticsearch-data-elasticsearch-data-0   Bound     pvc-e6f4738b-a771-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   8m
+      elasticsearch-data-elasticsearch-data-1   Bound     pvc-13939589-a772-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   7m
+      elasticsearch-data-elasticsearch-data-2   Bound     pvc-1961fb18-a772-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   6m
+      ```
 
 ## Install logging system
 
-1. elasticsearch 설치
-```sh
-$ kubectl create -f elasticsearch
-deployment.extensions "elasticsearch-client" created
-configmap "es-configmap" created
-configmap "es-curator" created
-service "elasticsearch-data" created
-statefulset.apps "elasticsearch-data" created
-service "elasticsearch-discovery" created
-deployment.extensions "elasticsearch-master" created
-clusterrolebinding.rbac.authorization.k8s.io "elastic-read" created
-clusterrole.rbac.authorization.k8s.io "elastic-read" created
-service "elasticsearch" created
-```
+  * elasticsearch 설치
 
-2. kibana 설치
-```sh
-$ kubectl create -f kibana/
-configmap "kibana-config" created
-deployment.extensions "kibana" created
-service "kibana" created
-```
+    ```sh
+    $ kubectl create -f elasticsearch
+    deployment.extensions "elasticsearch-client" created
+    configmap "es-configmap" created
+    configmap "es-curator" created
+    service "elasticsearch-data" created
+    statefulset.apps "elasticsearch-data" created
+    service "elasticsearch-discovery" created
+    deployment.extensions "elasticsearch-master" created
+    service "elasticsearch" created
+    ```
 
-3. fluent-bit 설치
-```sh
-$ kubectl create -f fluent-bit/
-configmap "fluent-bit-config" created
-daemonset.extensions "fluent-bit" created
-clusterrolebinding.rbac.authorization.k8s.io "fluent-bit-read" created
-clusterrole.rbac.authorization.k8s.io "fluent-bit-read" created
-```
+  * kibana 설치
+    ```sh
+    $ kubectl create -f kibana
+    configmap "kibana-config" created
+    deployment.extensions "kibana" created
+    service "kibana" created
+    ```
 
-4. fluentd 설치
-```sh
-$ kubectl create -f fluentd/
-deployment.apps "fluentd-aggregator" created
-service "fluentd-aggregator" created
-configmap "fluentd-config" created
-clusterrolebinding.rbac.authorization.k8s.io "fluentd-read" created
-clusterrole.rbac.authorization.k8s.io "fluentd-read" created
-service "fluentd" created
-```
+  * fluentd 설치
+    ```sh
+    $ kubectl create -f fluentd
+    deployment.apps "fluentd-aggregator" created
+    service "fluentd-aggregator" created
+    configmap "fluentd-config" created
+    ```
 
-5. 설치된 pod을 확인
-```sh
-$ kubectl get pod
-NAME                                                  READY     STATUS    RESTARTS   AGE
-elasticsearch-client-7649b9b8f5-r5h8j                 2/2       Running   0          1m
-elasticsearch-data-0                                  1/1       Running   0          1m
-elasticsearch-data-1                                  1/1       Running   0          1m
-elasticsearch-data-2                                  1/1       Running   0          1m
-elasticsearch-master-f9c6bb656-f92wk                  1/1       Running   0          1m
-fluent-bit-2f2dq                                      1/1       Running   0          1m
-fluent-bit-2l2dn                                      1/1       Running   0          1m
-fluent-bit-4j8j2                                      1/1       Running   0          1m
-fluent-bit-9556p                                      1/1       Running   0          1m
-fluent-bit-kp62w                                      1/1       Running   0          1m
-fluent-bit-mrwp8                                      1/1       Running   0          1m
-fluent-bit-n8psk                                      1/1       Running   0          1m
-fluent-bit-nmt8n                                      1/1       Running   0          1m
-fluent-bit-r65kq                                      1/1       Running   0          1m
-fluent-bit-sg6t4                                      1/1       Running   0          1m
-fluent-bit-zf6gs                                      1/1       Running   0          1m
-fluentd-aggregator-bb598fc8d-gqks5                    1/1       Running   0          1m
-kibana-787d7d7d8c-2rv2w                               1/1       Running   0          1m
-```
+  * fluent-bit 설치
+    ```sh
+    $ kubectl create -f fluent-bit
+    configmap "fluent-bit-config" created
+    daemonset.extensions "fluent-bit" created
+    ```
 
-## logging을 위한 keycloak proxy 설치
-1. Keycloak 폴더로 이동
-```sh
-$ cd keycloak/
-```
+  * 설치된 pod을 확인
+    ```
+    $ kubectl get pod
+    ...
+    ```
 
-2. 다른 value 파일들을 참고해서 클러스터명을 붙여서 value file 생성
-```sh
-$ cp values_gdi.yaml values_labs.yaml
-```
+## keycloak proxy 설치 (SSO)
 
-3. 변경사항 수정
-- 변경 내용
-> host name, authServerUrl : domain name  
-> realPublickey : keycloak의 zcp realm에 있는 Public key  
-> ALB ID : private 환경인 경우에만 사용. 아닐 시 주석처리
+  * values 수정
+    > 변경 할 내용
+    > * ingress
+    >   * hostname
+    >   * ALB-ID
+    > * configmap
+    >   * realmPublickey
+    >   * authServerUrl
+    >   * secret
+    
+    ```
+    $ vi keycloak/values.yaml
 
-<참고> ALB ID 확인방법
-```sh
-$ ic cs albs --cluster zcp-dtlabs <- cluster명
-OK
-ALB ID                                            Enabled   Status     Type      ALB IP           Zone
-private-cr5b9db2e16f62495b9ed316eb298760c6-alb1   false     disabled   private   -                -
-public-cr5b9db2e16f62495b9ed316eb298760c6-alb1    true      enabled    public    169.56.106.158   seo01
-```
-
-values file을 열고 위의 변경 내용들을 수정
-```sh
-$ vi values_labs.yaml
-  annotations:
-    ingress.bluemix.net/ALB-ID: private-crd141bb7f5a0047f180fe05ed4b5404a5-alb1
-
-  hosts:
-    - labs-logging.cloudzcp.io
-  tls:
-    - secretName: cloudzcp-io-cert
+    ...
+    ingress:
+      enabled: true 
+      annotations: 
+        ingress.bluemix.net/redirect-to-https: "True"
+        ingress.bluemix.net/ALB-ID: private-cr3d6b18b315544bcc8cdf94926c2d12c0-alb1    # ALB ID 로 수정. public 인 경우 주석처리
+      path: /
       hosts:
-        - labs-logging.cloudzcp.io
+        - logging.cloudzcp.io      # 도메인 변경
+      tls:
+        - secretName: cloudzcp-io-cert
+          hosts:
+            - logging.cloudzcp.io     # 도메인 변경
+    ...
+    configmap:
+      targetUrl: http://kibana:5602/
+      realm: zcp
+      realmPublicKey: "XXXXXXXXXX"     # Keycloak 에서 Public key 확인 후 변경
+      authServerUrl: https://iam.cloudzcp.io/auth   # Keycloak 도메인으로 변경
+      resource: logging 
+      secret: XXXXXXXXXXXXX    # Keyclock 에서 client secret 확인 후 변경
+      pattern: /*	
+      rolesAllowed: log-manager
+    ```
+    > ALB ID 확인방법
+      ```sh
+      $ ic cs albs --cluster zcp-dtlabs <- cluster명
+      OK
+      ALB ID                                            Enabled   Status     Type      ALB IP           Zone
+      private-cr5b9db2e16f62495b9ed316eb298760c6-alb1   false     disabled   private   -                -
+      public-cr5b9db2e16f62495b9ed316eb298760c6-alb1    true      enabled    public    169.56.106.158   seo01
+      ```
 
-configmap:
-  targetUrl: http://kibana:5602/
-  realm: zcp
-  realmPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsdAx6CerNa1aQQK1p0dfg0w4zjW1ycq81afDMdZl80WxYRaT1Q3oa7GWDkkFhu4rkjbLOPyipujEk4ouO2deK6o4wT3enJbwo4tVXrL6unS18roOOkVctBGZSJ0WacBgrml4JRw25bnl+ibrZw+h5ooF3t7iSGCIHPSwykELQJdrJvYgSWuo4lEsFcq3QCiOh4RQhnJPLbEvAWwQvlNgnMUfI7uMMEpIW1xA1Mbp5qFGqmCN1EFmYRmtYpbfMDAnMl+xB/8sMrTKzk1euiiOb5B+7ElDv6STrX9pdiGbGN1zskxDlZ88E2L1TX0/JInghYcj4axH88tJwmt/YIrbSwIDAQAB"
-  authServerUrl: https://labs-iam.cloudzcp.io/auth
-```
+    > Public Key 확인 방법
+      * keycloak login
+      * ZCP Realm 선택
+      * Realm Settings > Keys tab 선택
+      * RSA 행의 Public key 버튼 클릭 후 값 복사
+      ![](./img/2019-01-31-15-33-15.png)
 
-4. Helm 설치
-```sh
-$ helm install --name zcp-sso-for-logging --namespace zcp-system -f values.yaml zcp/zcp-sso
-```
+    > secret 확인 방법
+      * keycloak login
+      * ZCP Realm 선택
+      * Clients 메뉴 선택
+      * Logging > Credentials 선택
+      * Secret 값 복사
+      ![](./img/2019-01-31-15-37-09.png)
 
-<참고> 잘못 올라간 helm 지우고 싶을 때는 아래 명령어를 사용.
+  * Helm 설치
+    ```sh
+    $ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values.yaml zcp/zcp-sso
+    ```
+
+> <참고> 잘못 올라간 helm 지우고 싶을 때는 아래 명령어를 사용.
 ```sh
 $ helm del --purge zcp-sso-for-logging
 ```
-<참고> private repository 이용 시에는 주소 추가
-```
-helm install --name zcp-sso-for-logging --namespace zcp-system -f values.yaml zcp/zcp-sso --set image.repository=registry.au-syd.bluemix.net/cloudzcp/keycloak-proxy,image.tag=3.4.2.Final
-```
 
-5. 생성된 ingress 확인
-- 확인사항
-> HOSTS 명 : 해당 클러스터의 로깅 도메인명  
-> ADDRESS : IP ADDR가 정상적으로 할당 
+  * 생성된 ingress 확인
+    > 확인사항
+    > * HOSTS 명 : 해당 클러스터의 로깅 도메인명  
+    > * ADDRESS : IP ADDR가 정상적으로 할당 
 
-```sh
-$ kubectl get ingress
-NAME                    HOSTS                         ADDRESS          PORTS     AGE
-zcp-sso-for-logging     labs-logging.cloudzcp.io      169.56.106.158   80, 443   8s
-```
+    ```sh
+    $ kubectl get ingress
+    NAME                    HOSTS                         ADDRESS          PORTS     AGE
+    zcp-sso-for-logging     labs-logging.cloudzcp.io      XXXXXXX   80, 443   8s
+    ```
 
