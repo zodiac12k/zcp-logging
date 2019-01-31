@@ -11,7 +11,7 @@ service:
 
 ingress:
   enabled: true 
-  annotations: {}
+  annotations: 
     # ingress.bluemix.net/ALB-ID: private-cr3d6b18b315544bcc8cdf94926c2d12c0-alb1
     ingress.bluemix.net/redirect-to-https: "True"
   path: /
