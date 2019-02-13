@@ -11,8 +11,7 @@ spec:
     app: kibana
     component: kibana
   ports:
-  - nodePort: 31111 
-    port: 5602
+  - port: 5602
     protocol: TCP
     targetPort: 5602
-  type: NodePort 
+  type: ClusterIP
