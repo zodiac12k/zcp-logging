@@ -52,20 +52,6 @@ spec:
         securityContext:
           privileged: true
       containers:
-      - name: indices-cleaner
-        image: "registry.au-syd.bluemix.net/cloudzcp/indices-cleaner:0.2"
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-        - name: actionfile
-          mountPath: /action.yml
-          subPath: action.yml
-          readOnly: true
-        - name: config
-          mountPath: /etc/curator.yml
-          subPath: curator.yml
-        - name: cron
-          mountPath: /etc/cron.d/curator-cron
-          subPath: curator-cron
       - name: es-client
         securityContext:
           privileged: false
@@ -102,22 +88,4 @@ spec:
           items:
             - key: client.yml
               path: elasticsearch.yml
-      - name: "actionfile"
-        configMap:
-          name: es-curator
-          items:
-            - key: action.yml
-              path: action.yml
-      - name: "config"
-        configMap:
-          name: es-curator
-          items:
-            - key: config.yml
-              path: curator.yml
-      - name: "cron"
-        configMap:
-          name: es-curator
-          items:
-            - key: cron
-              path: curator-cron
       serviceAccountName: zcp-system-admin

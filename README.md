@@ -166,12 +166,17 @@
     $ kubectl create -f elasticsearch
     deployment.extensions "elasticsearch-client" created
     configmap "es-configmap" created
-    configmap "es-curator" created
     service "elasticsearch-data" created
     statefulset.apps "elasticsearch-data" created
     service "elasticsearch-discovery" created
     deployment.extensions "elasticsearch-master" created
     service "elasticsearch" created
+    ```
+
+  * elasticsearch-curator 설치 (오래된 Index 삭제)
+    ```sh
+    $ cd elasticsearch-curator
+    $ helm install elasticsearch-curator-1.5.0.tgz -n es-curator -f values.yaml --namespace=zcp-system
     ```
 
   * kibana 설치

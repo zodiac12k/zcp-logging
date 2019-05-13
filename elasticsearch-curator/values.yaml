@@ -45,7 +45,7 @@ command: ["curator"]
 env: {}
 
 configMaps:
-  # Delete indices older than 7 days
+  # Delete indices older than 10 days
   action_file_yml: |-
     ---
     actions:
@@ -63,7 +63,7 @@ configMaps:
           direction: older
           timestring: '%Y.%m.%d'
           unit: days
-          unit_count: 7
+          unit_count: 10
           field:
           stats_result:
           epoch:
@@ -75,15 +75,15 @@ configMaps:
       hosts:
         - elasticsearch
       port: 9200
-      # url_prefix:
-      # use_ssl: True
-      # certificate:
-      # client_cert:
-      # client_key:
-      # ssl_no_validate: True
-      # http_auth:
-      # timeout: 30
-      # master_only: False
+      url_prefix:
+      use_ssl: False
+      certificate:
+      client_cert:
+      client_key:
+      ssl_no_validate: True
+      http_auth:
+      timeout: 30
+      master_only: False
     logging:
       loglevel: INFO
       logfile:
@@ -154,3 +154,24 @@ extraInitContainers: {}
 
 securityContext:
   runAsUser: 16  # run as cron user instead of root
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: beta.kubernetes.io/arch
+          operator: In
+          values:
+          - "amd64"
+        - key: role
+          operator: In
+          values:
+          - "management"
+
+tolerations:
+- key: "management"
+  operator: "Equal"
+  value: "true"
+  effect: "NoSchedule"
+  PodAnnotations: {}
