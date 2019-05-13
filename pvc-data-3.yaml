@@ -2,6 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: elasticsearch-data-elasticsearch-data-0
+  namespace: zcp-system
   annotations:
     volume.beta.kubernetes.io/storage-class: ibmc-block-retain-silver
   labels:
@@ -22,6 +23,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: elasticsearch-data-elasticsearch-data-1
+  namespace: zcp-system
   annotations:
     volume.beta.kubernetes.io/storage-class: ibmc-block-retain-silver
   labels:
@@ -42,6 +44,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: elasticsearch-data-elasticsearch-data-2
+  namespace: zcp-system
   annotations:
     volume.beta.kubernetes.io/storage-class: ibmc-block-retain-silver
   labels:

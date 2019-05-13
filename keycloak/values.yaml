@@ -61,7 +61,7 @@ configmap:
   realm: zcp
   realmPublicKey: #PublicKey of zcp realm
   authServerUrl: https://keycloak.cloudzcp.io/auth
-  resource: kibana
+  resource: logging
   secret: 254d9dcc-c27f-48a2-8e7d-70ef1abbc401
   pattern: /*	
   rolesAllowed: log-manager
