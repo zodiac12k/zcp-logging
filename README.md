@@ -1,5 +1,16 @@
 # zcp-logging
 
+## Logging Component 
+
+| Component        | Version           | Image  | etc |
+| ------------- |-------------|-----|----|
+|Elasticsearch| 6.3.1 |docker.elastic.co/elasticsearch/elasticsearch:6.3.1
+|Kibana|  6.3.1 |docker.elastic.co/kibana/kibana:6.3.1
+|Elasticsearch-curator|  5.5.4  |quay.io/pires/docker-elasticsearch-curator:5.5.4
+|Fluent-bit| 0.13.4 |fluent/fluent-bit:0.13.4
+|FluentD| 1.2.5 |fluent/fluentd:v1.2.5-debian | Add plugins
+|Keycloak proxy| 3.4.2  |jboss/keycloak-proxy:3.4.2.Final
+
 ## 사전 준비
 * ### Helm client 설치 
   설치는 각자 알아서 할 것
@@ -175,8 +186,29 @@
 
   * elasticsearch-curator 설치 (오래된 Index 삭제)
     ```sh
-    $ cd elasticsearch-curator
-    $ helm install elasticsearch-curator-1.5.0.tgz -n es-curator -f values.yaml --namespace=zcp-system
+    $ helm install stable/elasticsearch-curator --version 1.5.0 -n es-curator -f elasticsearch-curator/values.yaml --namespace=zcp-system
+
+    NAME:   es-curator
+    LAST DEPLOYED: Mon May 13 18:11:03 2019
+    NAMESPACE: zcp-system
+    STATUS: DEPLOYED
+
+    RESOURCES:
+    ==> v1beta1/CronJob
+    NAME                              SCHEDULE    SUSPEND  ACTIVE  LAST SCHEDULE  AGE
+    es-curator-elasticsearch-curator  0 15 * * *  False    0       <none>         0s
+
+    ==> v1/ConfigMap
+    NAME                                     DATA  AGE
+    es-curator-elasticsearch-curator-config  2     0s
+
+    NOTES:
+    A CronJob will run with schedule 0 15 * * *.
+
+    The Jobs will not be removed automagically when deleting this Helm chart.
+    To remove these jobs, run the following :
+
+    kubectl -n zcp-system delete job -l app=elasticsearch-curator,release=es-curator
     ```
 
   * kibana 설치
