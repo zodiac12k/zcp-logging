@@ -20,6 +20,9 @@ data:
         enabled: true
         allow-origin: "*"
     s3.client.default.endpoint: s3.seo-ap-geo.objectstorage.softlayer.net
+  thread_pool:
+    search:
+      queue_size: 500
 #    s3.client.default.access_key: fcJyRzXW8UKvV1rRSbfK
 #    s3.client.default.secret_key: 4WZm9j9rZkoLBEb00mtLZCO2sXBVUdaRtoKttBgo
 
