@@ -20,7 +20,7 @@ data:
         Name              tail
         Tag               kube.*
         Path              /var/log/containers/*.log
-        Parser            docker
+        Parser            containerd
         DB                /var/log/flb_kube.db
         Mem_Buf_Limit     5MB
         Refresh_Interval  10
@@ -96,7 +96,7 @@ data:
         Time_Format %d/%b/%Y:%H:%M:%S %z
         Decode_Field_as escaped_utf8 log
     [PARSER]
-        Name        docker
+        Name        containerd
         Format      regex
         Time_Key    time
         Time_Format %Y-%m-%dT%H:%M:%S.%L
@@ -104,7 +104,7 @@ data:
         Regex ^(?<time>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,}Z) (?<stream>stdout|stderr) (?<line>[FPI]) (?<log>.*)$
         # Command      |  Decoder | Field | Optional Action
         # =============|==================|=================
-        Decode_Field_As    escaped_utf8      log
+        # Decode_Field_As    escaped_utf8      log
     [PARSER]
         Name        syslog
         Format      regex
