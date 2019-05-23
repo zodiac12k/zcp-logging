@@ -38,7 +38,7 @@ data:
         Name              tail
         Tag               ingress.*
         Path              /var/log/containers/p*-alb*_kube-system_*.log
-        Parser            nginx-ingress
+        Parser            containerd
         DB                /var/log/flb_ingress.db
         Mem_Buf_Limit     5MB
         Refresh_Interval  10
