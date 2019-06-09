@@ -30,7 +30,7 @@ psp:
   create: false
 
 image:
-  repository: quay.io/pires/docker-elasticsearch-curator
+  repository: registry.au-syd.bluemix.net/cloudzcp/docker-elasticsearch-curator
   tag: 5.5.4
   pullPolicy: IfNotPresent
 
