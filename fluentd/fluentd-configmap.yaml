@@ -96,7 +96,6 @@ data:
       multiline_start_regexp /((?<level>^[IE])?(?<apptime>(\d{4} \d{2}:\d{2}:\d{2}.\d{6})|(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2})))/
       flush_interval 1
       timeout_label @INGRESS
-      separator ""
     </filter>
     <filter *.ingress.**>
       @type record_transformer
