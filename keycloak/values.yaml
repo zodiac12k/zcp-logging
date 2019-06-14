@@ -13,14 +13,14 @@ ingress:
   enabled: true 
   annotations: 
     ingress.bluemix.net/redirect-to-https: "True"
-    # ingress.bluemix.net/ALB-ID: private-cr3d6b18b315544bcc8cdf94926c2d12c0-alb1
+    #ingress.bluemix.net/ALB-ID: private-***-alb1 #private인 경우 수정 
   path: /
   hosts:
-    - ***-logging.cloudzcp.io
+    - ***-logging.cloudzcp.io #CHANGE
   tls:
     - secretName: cloudzcp-io-cert
       hosts:
-        - ***-logging.cloudzcp.io
+        - ***-logging.cloudzcp.io #CHANGE
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -59,9 +59,9 @@ tolerations:
 configmap:
   targetUrl: http://kibana:5602/
   realm: zcp
-  realmPublicKey: #PublicKey of zcp realm
-  authServerUrl: https://***-iam.cloudzcp.io/auth
+  realmPublicKey: ***                             #PublicKey of zcp realm
+  authServerUrl: https://***-iam.cloudzcp.io/auth #CHANGE
   resource: logging
-  secret: 254d9dcc-c27f-48a2-8e7d-70ef1abbc401 # check
+  secret: 254d9dcc-c27f-48a2-8e7d-70ef1abbc401    #check
   pattern: /*	
   rolesAllowed: log-manager
