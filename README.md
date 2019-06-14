@@ -18,7 +18,7 @@
   $ helm init --client-only
 
   # Repository 추가
-  $ helm repo add zcp     https://raw.githubusercontent.com/cnpst/charts/master/docs
+  $ helm repo add zcp https://raw.githubusercontent.com/cnpst/charts/master/docs
   ```
 
 * ### Clone this project into desktop
@@ -143,7 +143,7 @@
     * 생성한 PVC의 상태가 Bound로 되었는지 확인
 
       ```sh
-      $ kubectl get pvc
+      $ kubectl get pvc -n zcp-system
       NAME                                      STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS               AGE
       elasticsearch-data-elasticsearch-data-0   Bound     pvc-e6f4738b-a771-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   8m
       ```
@@ -162,7 +162,7 @@
     * 생성한 PVC의 상태가 Bound로 되었는지 확인
 
       ```sh
-      $ kubectl get pvc
+      $ kubectl get pvc -n zcp-system
       NAME                                      STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS               AGE
       elasticsearch-data-elasticsearch-data-0   Bound     pvc-e6f4738b-a771-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   8m
       elasticsearch-data-elasticsearch-data-1   Bound     pvc-13939589-a772-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   7m
@@ -236,7 +236,7 @@
 
   * 설치된 pod을 확인
     ```
-    $ kubectl get pod
+    $ kubectl get pod  -n zcp-system
     ...
     ```
 
@@ -281,7 +281,7 @@
     ```
     > ALB ID 확인방법
       ```sh
-      $ ic cs albs --cluster zcp-dtlabs <- cluster명
+      $ ic cs albs --cluster zcp-dtlabs #<- cluster명
       OK
       ALB ID                                            Enabled   Status     Type      ALB IP           Zone
       private-cr5b9db2e16f62495b9ed316eb298760c6-alb1   false     disabled   private   -                -
