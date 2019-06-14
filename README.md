@@ -308,7 +308,9 @@
     $ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values.yaml zcp/zcp-sso
     ```
 
-> <참고> 잘못 올라간 helm 지우고 싶을 때는 아래 명령어를 사용.
+>
+> *********** <참고> 잘못 올라간 helm 지우고 싶을 때는 아래 명령어를 사용. **************
+>
 ```sh
 $ helm del --purge zcp-sso-for-logging
 ```
