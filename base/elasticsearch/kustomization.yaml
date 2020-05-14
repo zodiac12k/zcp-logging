@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: zcp-system
+resources:
+- es-client-deploy.yaml
+- es-config.yaml
+- es-data-service.yaml
+- es-data-statefulset.yaml
+- es-discovery-service.yaml
+- es-master-deploy.yaml
+- es-service.yaml
+generatorOptions:
+  disableNameSuffixHash: true

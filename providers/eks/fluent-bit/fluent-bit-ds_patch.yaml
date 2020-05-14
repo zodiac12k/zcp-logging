@@ -1,0 +1,12 @@
+- op: add
+  path: /spec/template/spec/containers/0/volumeMounts/-
+  value:
+    name: varlibdockercontainers
+    mountPath: /var/lib/docker/containers
+    readOnly: true
+- op: add
+  path: /spec/template/spec/volumes/-
+  value:
+    name: varlibdockercontainers
+    hostPath:
+      path: /var/lib/docker/containers

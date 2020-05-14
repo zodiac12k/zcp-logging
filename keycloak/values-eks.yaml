@@ -12,15 +12,15 @@ service:
 ingress:
   enabled: true 
   annotations: 
-    ingress.bluemix.net/redirect-to-https: "True"
-    #ingress.bluemix.net/ALB-ID: private-***-alb1 #private인 경우 수정 
+    kubernetes.io/ingress.class: "nginx"   # CHANGE
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
   path: /
   hosts:
-    - ***-logging.cloudzcp.io #CHANGE
+    - eks-dev-logging.cloudzcp.io #CHANGE
   tls:
     - secretName: cloudzcp-io-cert
       hosts:
-        - ***-logging.cloudzcp.io #CHANGE
+        - eks-dev-logging.cloudzcp.io #CHANGE
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -48,10 +48,10 @@ affinity:
         - key: role
           operator: In
           values:
-          - logging
+          - management 
 
 tolerations:
-  - key: "logging"
+  - key: "management"
     operator: "Equal"
     value: "true"
     effect: "NoSchedule"
@@ -59,8 +59,8 @@ tolerations:
 configmap:
   targetUrl: http://kibana:5602/
   realm: zcp
-  realmPublicKey: ***                             #PublicKey of zcp realm
-  authServerUrl: https://***-iam.cloudzcp.io/auth #CHANGE
+  realmPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqRZzaJtKB9R1pvrBKfROQlCcG93FXCIvN8xdhzgPJid2ztz5yW9Szo1EmWzXHbNysySFQp0AHRk6FmgfFb86aLs4oejwhHtdpxAWU2ODLZGZfSveI20YV24CfJvZ8cGTpkuVYJnUhu1YHWKl92pu+eQjE/GAcuwOSHhgWEvzc/b+c3WjVgFR2+ooExF4lCnccaSf0pJ5oN6fCAyL+N6oFq2HXVA+NmdZy8sVcQL2QtknWITvWa+riRMIk3ZIIdeS9nXAv71psWMs+YAtvOjTJKJTlhoPeoJRj/TDFCwb806ov/2TBnGLJUV697A+i464ndyIvQylV6LiQFOQgRwk4wIDAQAB                             #PublicKey of zcp realm
+  authServerUrl: https://eks-dev-iam.cloudzcp.io/auth #CHANGE
   resource: logging
   secret: 69ca391e-4999-4779-96cc-6aef4875ea46    #check
   pattern: /*	
