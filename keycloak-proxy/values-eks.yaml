@@ -59,7 +59,7 @@ tolerations:
 configmap:
   targetUrl: http://kibana:5602/
   realm: zcp
-  realmPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqRZzaJtKB9R1pvrBKfROQlCcG93FXCIvN8xdhzgPJid2ztz5yW9Szo1EmWzXHbNysySFQp0AHRk6FmgfFb86aLs4oejwhHtdpxAWU2ODLZGZfSveI20YV24CfJvZ8cGTpkuVYJnUhu1YHWKl92pu+eQjE/GAcuwOSHhgWEvzc/b+c3WjVgFR2+ooExF4lCnccaSf0pJ5oN6fCAyL+N6oFq2HXVA+NmdZy8sVcQL2QtknWITvWa+riRMIk3ZIIdeS9nXAv71psWMs+YAtvOjTJKJTlhoPeoJRj/TDFCwb806ov/2TBnGLJUV697A+i464ndyIvQylV6LiQFOQgRwk4wIDAQAB                             #PublicKey of zcp realm
+  realmPublicKey: # PublicKey of zcp realm
   authServerUrl: https://eks-dev-iam.cloudzcp.io/auth #CHANGE
   resource: logging
   secret: 69ca391e-4999-4779-96cc-6aef4875ea46    #check
