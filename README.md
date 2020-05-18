@@ -7,12 +7,12 @@
 |Elasticsearch| 6.3.1 |docker.elastic.co/elasticsearch/elasticsearch:6.3.1
 |Kibana|  6.3.1 |docker.elastic.co/kibana/kibana:6.3.1
 |Elasticsearch-curator|  5.5.4  |quay.io/pires/docker-elasticsearch-curator:5.5.4
-|Fluent-bit| 0.13.4 |fluent/fluent-bit:0.13.4
+|Fluent-bit| 0.14.9 |fluent/fluent-bit:0.14.9
 |FluentD| 1.2.5 |fluent/fluentd:v1.2.5-debian | Add plugins
 |Keycloak proxy| 3.4.2  |jboss/keycloak-proxy:3.4.2.Final
 
 ## 사전 준비
-* ### Helm client 설치 
+### Helm client 설치 
   설치는 각자 알아서 할 것
   ```
   $ helm init --client-only
@@ -21,7 +21,7 @@
   $ helm repo add zcp https://raw.githubusercontent.com/cnpst/charts/master/docs
   ```
 
-* ### Clone this project into desktop
+### Clone this project into desktop
   ```
   $ git clone https://github.com/cnpst/zcp-logging.git
   ```
@@ -30,217 +30,43 @@
   $ cd zcp-logging
   ```
 
-* ### Logging 노드가 1대인 경우 아래 내용 미리 수행
-  * es-data StatefulSet Replicas 수정
-    ```
-    $ vi elasticsearch/es-data-statefulset.yaml
+## Install elastisearch, fluentbit, fluentd, kibana with kustomize
 
-    apiVersion: apps/v1beta1
-    kind: StatefulSet
-    metadata:
-      labels:
-        app: elasticsearch
-        component: elasticsearch
-        role: data
-      name: elasticsearch-data
-      namespace: zcp-system
-    spec:
-      updateStrategy:
-        type: RollingUpdate
-      podManagementPolicy: Parallel
-      serviceName: elasticsearch-data
-      replicas: 1 # replicas 값을 3에서 1로 수정
-      template:
-        metadata:
-    ...
-    ```
+kustomize 를 이용하여 EFK 를 설치합니다.
 
-  * es-client deploy 의 affinity, toleration 을 management로 변경
-    > 노드 1개인 경우 리소스 문제로 client 를 management 에 설치
-    ```
-    $ vi elasticsearch/es-client-deploy.yaml
+### for IKS elasticsearch cluster
 
-    ...
-    spec:
-      tolerations:
-      - key: "management" # logging 을 management 로 수정
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-      restartPolicy: Always
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - "amd64"
-              - key: role 
-                operator: In
-                values:
-                - "management" # logging 을 management 로 수정
-    ...
-    ```
-  * SSO Logging 의 affinity, toleration 을 management로 변경
-    > 노드 1개인 경우 SSO Logging 을 management 에 설치
-    ```
-    $ vi keycloak/values.yaml
+Logging 노드가 3대인 경우
 
-    ...
-    affinity: 
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: beta.kubernetes.io/arch
-              operator: In
-              values:
-              - amd64
-            - key: role
-              operator: In
-              values:
-              - management    # logging 을 management 로 수정
+```shell script
+$ kubectl create -k providers/iks
+```
 
-    tolerations:
-      - key: "management"     # logging 을 management 로 수정
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-    ...
-    ```
-  * Fluentd config map 수정
-    > Data 노드가 1개 이므로 Index template 의 shard 를 1 replica 를 0 으로 수정
-    ```
-    vi fluentd/fluentd-configmap.yaml
+### for IKS elasticsearch single node
 
-    ...
-    application-log.json: |
-      {
-        "template" : "*",
-        "version" : 1,
-        "order" : 10000,
-        "settings" : {
-          "index.refresh_interval" : "5s",
-          "number_of_shards": 1,    # 5 에서 1 로 수정
-          "number_of_replicas": 0   # 1 에서 0 으로 수정
-        },
-    ...
-    ```
+Logging 노드가 1대인 경우
 
-## Install PVC for elasticsearch
+```shell script
+$ kubectl create -k providers/iks-single
+```
 
-  * Data node가 1개인 경우
+### for EKS elasticsearch cluster
 
-    * PVC 생성
-  
-      ```sh
-      $ kubectl create -f pvc-data-1.yaml
-      persistentvolumeclaim "elasticsearch-data-elasticsearch-data-0" created
-      ```
+Logging 노드가 3대인 경우
 
-    * 생성한 PVC의 상태가 Bound로 되었는지 확인
+```shell script
+$ kubectl create -k providers/eks
+```
 
-      ```sh
-      $ kubectl get pvc -n zcp-system
-      NAME                                      STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS               AGE
-      elasticsearch-data-elasticsearch-data-0   Bound     pvc-e6f4738b-a771-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   8m
-      ```
+### for EKS elasticsearch single node
 
-  * Data node가 3개인 경우
+Logging 노드가 1대인 경우
 
-    * PVC 생성
+```shell script
+$ kubectl create -k providers/eks
+```
 
-      ```sh
-      $ kubectl create -f pvc-data-3.yaml
-      persistentvolumeclaim "elasticsearch-data-elasticsearch-data-0" created
-      persistentvolumeclaim "elasticsearch-data-elasticsearch-data-1" created
-      persistentvolumeclaim "elasticsearch-data-elasticsearch-data-2" created
-      ```
-
-    * 생성한 PVC의 상태가 Bound로 되었는지 확인
-
-      ```sh
-      $ kubectl get pvc -n zcp-system
-      NAME                                      STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS               AGE
-      elasticsearch-data-elasticsearch-data-0   Bound     pvc-e6f4738b-a771-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   8m
-      elasticsearch-data-elasticsearch-data-1   Bound     pvc-13939589-a772-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   7m
-      elasticsearch-data-elasticsearch-data-2   Bound     pvc-1961fb18-a772-11e8-84b7-aa133192a9ef   200Gi      RWO            ibmc-block-retain-silver   6m
-      ```
-
-## Install logging system
-
-  * elasticsearch 설치
-
-    ```sh
-    $ kubectl create -f elasticsearch
-    deployment.extensions "elasticsearch-client" created
-    configmap "es-configmap" created
-    service "elasticsearch-data" created
-    statefulset.apps "elasticsearch-data" created
-    service "elasticsearch-discovery" created
-    deployment.extensions "elasticsearch-master" created
-    service "elasticsearch" created
-    ```
-
-  * elasticsearch-curator 설치 (오래된 Index 삭제)
-    ```sh
-    $ helm install stable/elasticsearch-curator --version 1.5.0 -n es-curator -f elasticsearch-curator/values.yaml --namespace=zcp-system
-
-    NAME:   es-curator
-    LAST DEPLOYED: Mon May 13 18:11:03 2019
-    NAMESPACE: zcp-system
-    STATUS: DEPLOYED
-
-    RESOURCES:
-    ==> v1beta1/CronJob
-    NAME                              SCHEDULE    SUSPEND  ACTIVE  LAST SCHEDULE  AGE
-    es-curator-elasticsearch-curator  0 15 * * *  False    0       <none>         0s
-
-    ==> v1/ConfigMap
-    NAME                                     DATA  AGE
-    es-curator-elasticsearch-curator-config  2     0s
-
-    NOTES:
-    A CronJob will run with schedule 0 15 * * *.
-
-    The Jobs will not be removed automagically when deleting this Helm chart.
-    To remove these jobs, run the following :
-
-    kubectl -n zcp-system delete job -l app=elasticsearch-curator,release=es-curator
-    ```
-
-  * kibana 설치
-    ```sh
-    $ kubectl create -f kibana
-    configmap "kibana-config" created
-    deployment.extensions "kibana" created
-    service "kibana" created
-    ```
-
-  * fluentd 설치
-    ```sh
-    $ kubectl create -f fluentd
-    deployment.apps "fluentd-aggregator" created
-    service "fluentd-aggregator" created
-    configmap "fluentd-config" created
-    ```
-
-  * fluent-bit 설치
-    ```sh
-    $ kubectl create -f fluent-bit
-    configmap "fluent-bit-config" created
-    daemonset.extensions "fluent-bit" created
-    ```
-
-  * 설치된 pod을 확인
-    ```
-    $ kubectl get pod  -n zcp-system
-    ...
-    ```
-
-## keycloak proxy 설치 (SSO)
+## Install keycloak proxy (SSO) with helm
 
   * values 수정
     > 변경 할 내용
@@ -308,6 +134,35 @@
     $ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values.yaml zcp/zcp-sso
     ```
 
+## Install elasticsearch-curator with helm
+
+오래된 Index를 삭제하기 위하여 curator 를 설치
+
+    ```shell script
+    $ helm install stable/elasticsearch-curator --version 1.5.0 -n es-curator -f elasticsearch-curator/values.yaml --namespace=zcp-system
+
+    NAME:   es-curator
+    LAST DEPLOYED: Mon May 13 18:11:03 2019
+    NAMESPACE: zcp-system
+    STATUS: DEPLOYED
+
+    RESOURCES:
+    ==> v1beta1/CronJob
+    NAME                              SCHEDULE    SUSPEND  ACTIVE  LAST SCHEDULE  AGE
+    es-curator-elasticsearch-curator  0 15 * * *  False    0       <none>         0s
+
+    ==> v1/ConfigMap
+    NAME                                     DATA  AGE
+    es-curator-elasticsearch-curator-config  2     0s
+
+    NOTES:
+    A CronJob will run with schedule 0 15 * * *.
+
+    The Jobs will not be removed automagically when deleting this Helm chart.
+    To remove these jobs, run the following :
+
+    kubectl -n zcp-system delete job -l app=elasticsearch-curator,release=es-curator
+    ```
 >
 > *********** <참고> 잘못 올라간 helm 지우고 싶을 때는 아래 명령어를 사용. **************
 >

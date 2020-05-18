@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: zcp-system
 bases:
-- ../eks
+- ../iks
 patchesJson6902:
 - path: elasticsearch/es-data-statefulset_replicas_patch.yaml
   target:

@@ -12,6 +12,12 @@ patchesJson6902:
     kind: StatefulSet
     name: elasticsearch-data
     version: v1beta1
+- path: elasticsearch/es-data-statefulset_env_patch.yaml
+  target:
+    group: apps
+    kind: StatefulSet
+    name: elasticsearch-data
+    version: v1beta1
 - path: fluent-bit/fluent-bit-ds_patch.yaml
   target:
     group: extensions

@@ -23,7 +23,7 @@ spec:
       - operator: Exists
       containers:
       - name: fluent-bit
-        image: registry.au-syd.bluemix.net/cloudzcp/fluent-bit:0.13.4
+        image: registry.au-syd.bluemix.net/cloudzcp/fluent-bit:0.14.9
         imagePullPolicy: Always
         ports:
           - containerPort: 2020
@@ -35,6 +35,9 @@ spec:
           readOnly: true
         - name: fluent-bit-config
           mountPath: /fluent-bit/etc/
+        - name: fluent-bit-config
+          mountPath: /fluent-bit/scripts/kubernetes_dedot.lua
+          subPath: kubernetes_dedot.lua
         env:
           - name: NODE_NAME
             valueFrom:

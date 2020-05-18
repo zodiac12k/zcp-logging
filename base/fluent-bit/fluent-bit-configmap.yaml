@@ -24,7 +24,7 @@ data:
         DB                /var/log/flb_kube.db
         Mem_Buf_Limit     5MB
         Refresh_Interval  10
-        Exclude_Path   /var/log/containers/fluentd-aggregator*
+        Exclude_Path      /var/log/containers/fluentd-aggregator*
     [INPUT]
         Name              tail
         Tag               kubemeta.*
@@ -38,6 +38,14 @@ data:
         Name              tail
         Tag               ingress.*
         Path              /var/log/containers/p*-alb*_kube-system_*.log
+        Parser            containerd
+        DB                /var/log/flb_ingress.db
+        Mem_Buf_Limit     5MB
+        Refresh_Interval  10
+    [INPUT]
+        Name              tail
+        Tag               ingress.*
+        Path              /var/log/containers/p*-nginx-ingress-*controller*_kube-system_*.log
         Parser            containerd
         DB                /var/log/flb_ingress.db
         Mem_Buf_Limit     5MB
@@ -59,13 +67,23 @@ data:
         Kube_URL            https://kubernetes.default.svc.cluster.local:443
         Merge_Log           Off
         K8S-Logging.Parser  On
+    [FILTER]
+        Name                lua
+        Match               kube.*
+        script              /fluent-bit/scripts/kubernetes_dedot.lua
+        call                dedot
+    [FILTER]
+        Name                lua
+        Match               ingress.*
+        script              /fluent-bit/scripts/kubernetes_dedot.lua
+        call                dedot
   output-fluentd.conf: |
     [OUTPUT]
-       Name            forward
-       Match           *
-       Host            fluentd-aggregator
-       Port            24224
-       Time_as_Integer True
+        Name            forward
+        Match           *
+        Host            fluentd-aggregator
+        Port            24224
+        Time_as_Integer True
   parsers.conf: |
     [PARSER]
         Name   apache
@@ -134,3 +152,33 @@ data:
         # Command      |  Decoder | Field | Optional Action
         # =============|==================|=================
         Decode_Field_As    escaped      log
+  kubernetes_dedot.lua: |-
+    function dedot(tag, timestamp, record)
+        if record["kubernetes"] == nil then
+            return 0, 0, 0
+        end
+        dedot_keys(record["kubernetes"]["annotations"])
+        dedot_keys(record["kubernetes"]["labels"])
+        return 1, timestamp, record
+    end
+    function dedot_keys(map)
+        if map == nil then
+            return
+        end
+        local new_map = {}
+        local changed_keys = {}
+        for k, v in pairs(map) do
+            local deslashed = string.gsub(k, "%/", "_")
+            local dedotted = string.gsub(deslashed, "%.", "_")
+            if dedotted ~= k then
+                new_map[dedotted] = v
+                changed_keys[k] = true
+            end
+        end
+        for k in pairs(changed_keys) do
+            map[k] = nil
+        end
+        for k, v in pairs(new_map) do
+            map[k] = v
+        end
+    end
