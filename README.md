@@ -87,6 +87,8 @@
     > 노드 1개인 경우 SSO Logging 을 management 에 설치
     ```
     $ vi keycloak/values.yaml
+    # AKS 인 경우 
+    $ vi keycloak/values-aks.yaml
 
     ...
     affinity: 
@@ -137,6 +139,8 @@
   
       ```sh
       $ kubectl create -f pvc-data-1.yaml
+      # AKS 인 경우
+      $ kubectl create -f aks/pvc-data-1-aks.yaml
       persistentvolumeclaim "elasticsearch-data-elasticsearch-data-0" created
       ```
 
@@ -154,6 +158,8 @@
 
       ```sh
       $ kubectl create -f pvc-data-3.yaml
+      # AKS 인 경우
+      $ kubectl create -f aks/pvc-data-3-aks.yaml
       persistentvolumeclaim "elasticsearch-data-elasticsearch-data-0" created
       persistentvolumeclaim "elasticsearch-data-elasticsearch-data-1" created
       persistentvolumeclaim "elasticsearch-data-elasticsearch-data-2" created
@@ -233,6 +239,14 @@
     configmap "fluent-bit-config" created
     daemonset.extensions "fluent-bit" created
     ```
+    AKS 인 경우
+    ```sh
+    $ kubectl create -f aks/fluent-bit-configmap-aks.yaml
+    configmap/fluent-bit-config created
+
+    $ kubectl create -f aks/fluent-bit-ds-aks.yaml
+    daemonset.extensions/fluent-bit created
+    ```
 
   * 설치된 pod을 확인
     ```
@@ -254,6 +268,8 @@
     
     ```
     $ vi keycloak/values.yaml
+    # AKS 인 경우
+    $ vi keycloak/values-aks.yaml
 
     ...
     ingress:
@@ -306,6 +322,9 @@
   * Helm 설치
     ```sh
     $ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values.yaml zcp/zcp-sso
+    
+    # AKS 인 경우
+    $ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values-aks.yaml zcp/zcp-sso
     ```
 
 >

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+metadata:
+  name: elasticsearch-data-elasticsearch-data-0
+  namespace: zcp-system
+  annotations:
+    volume.beta.kubernetes.io/storage-class: managed-standard-retain
+  labels:
+    app: elasticsearch
+    component: elasticsearch
+    role: data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi
+  storageClassName: managed-standard-retain
