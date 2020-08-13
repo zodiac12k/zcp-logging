@@ -24,7 +24,7 @@ data:
         DB                /var/log/flb_kube.db
         Mem_Buf_Limit     5MB
         Refresh_Interval  10
-        Exclude_Path   /var/log/containers/fluentd-aggregator*
+        Exclude_Path   /var/log/containers/fluentd-aggregator*,/var/log/containers/p*nginx-ingress-*controller*_kube-system_*.log
     [INPUT]
         Name              tail
         Tag               kubemeta.*
