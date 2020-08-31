@@ -9,7 +9,7 @@ patchesJson6902:
     group: apps
     kind: StatefulSet
     name: elasticsearch-data
-    version: v1beta1
+    version: v1
 configMapGenerator:
 - name: fluentd-config
   behavior: merge
