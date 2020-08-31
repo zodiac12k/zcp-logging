@@ -1,0 +1,67 @@
+replicaCount: 1
+
+image:
+  repository: registry.au-syd.bluemix.net/cloudzcp/keycloak-proxy
+  tag: 3.4.2.Final
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true 
+  annotations: 
+    kubernetes.io/ingress.class: private-nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  path: /
+  hosts:
+    - skn-ers-dev-logging.cloudzcp.io #CHANGE
+  tls:
+    - secretName: cloudzcp-io-cert
+      hosts:
+        - skn-ers-dev-logging.cloudzcp.io #CHANGE
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+affinity: 
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: beta.kubernetes.io/arch
+          operator: In
+          values:
+          - amd64
+        - key: role
+          operator: In
+          values:
+          - logging
+
+tolerations:
+  - key: "logging"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+configmap:
+  targetUrl: http://kibana:5602/
+  realm: zcp
+  realmPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA07ZM/3MEx83Iux57hp/8guElJlQsD9Ma+MMDmQ2Me8p+UIBtYvHgjYkd+UddKxVkQN/RPjPfembGG7PX5O+KeBgIp6xTPwke0HNmtiYa06AjjKDjOSjeecPg53/Kh4QW0BgqsdSA75UVeXG33k6PfRWNnnwT1kj5Jm0LNyFFJrmRrEadaBl9Sm0Ya6ACSjVTJzd9quoxYul6PhNgoLEGBeEGJlTHwLrBxWGQRpPRRiX8U9bCWzJ1dquzFZS5hX8i1CYKvHv3rzcMgg9vuxcKYAJ5gbJoraD9KduDizW9aEINCksqelbj4lUx5tTBgeQk5Pb9exnqfualcVNrR26sAQIDAQAB                             #PublicKey of zcp realm
+  authServerUrl: https://skn-ers-dev-iam.cloudzcp.io/auth #CHANGE
+  resource: logging
+  secret: 69ca391e-4999-4779-96cc-6aef4875ea46    #check
+  pattern: /*	
+  rolesAllowed: log-manager

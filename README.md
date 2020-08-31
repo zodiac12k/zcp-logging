@@ -80,6 +80,8 @@ $ kubectl create -k providers/eks
     
     ```
     $ vi keycloak/values.yaml
+    # AKS 인 경우
+    $ vi keycloak/values-aks.yaml
 
     ...
     ingress:
@@ -132,6 +134,9 @@ $ kubectl create -k providers/eks
   * Helm 설치
     ```sh
     $ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values.yaml zcp/zcp-sso
+    
+    # AKS 인 경우
+    $ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values-aks.yaml zcp/zcp-sso
     ```
 
 ## Install elasticsearch-curator with helm

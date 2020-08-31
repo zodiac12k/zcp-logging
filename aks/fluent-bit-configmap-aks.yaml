@@ -24,7 +24,7 @@ data:
         DB                /var/log/flb_kube.db
         Mem_Buf_Limit     5MB
         Refresh_Interval  10
-        Exclude_Path      /var/log/containers/fluentd-aggregator*,/var/log/containers/p*-alb*_kube-system_*.log
+        Exclude_Path   /var/log/containers/fluentd-aggregator*,/var/log/containers/p*nginx-ingress-*controller*_kube-system_*.log
     [INPUT]
         Name              tail
         Tag               kubemeta.*
@@ -38,6 +38,14 @@ data:
         Name              tail
         Tag               ingress.*
         Path              /var/log/containers/p*-alb*_kube-system_*.log
+        Parser            containerd
+        DB                /var/log/flb_ingress.db
+        Mem_Buf_Limit     5MB
+        Refresh_Interval  10
+    [INPUT]
+        Name              tail
+        Tag               ingress.*
+        Path              /var/log/containers/p*nginx-ingress-*controller*_kube-system_*.log
         Parser            containerd
         DB                /var/log/flb_ingress.db
         Mem_Buf_Limit     5MB
@@ -97,14 +105,14 @@ data:
         Decode_Field_as escaped_utf8 log
     [PARSER]
         Name        containerd
-        Format      regex
+        Format      json
         Time_Key    time
         Time_Format %Y-%m-%dT%H:%M:%S.%L
         Time_Keep   On
-        Regex ^(?<time>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,}Z) (?<stream>stdout|stderr) (?<line>[FPI]) (?<log>.*)$
+        #Regex ^(?<time>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,}Z) (?<stream>stdout|stderr) (?<line>[FPI]) (?<log>.*)$
         # Command      |  Decoder | Field | Optional Action
         # =============|==================|=================
-        # Decode_Field_As    escaped_utf8      log
+        Decode_Field_As    escaped      log
     [PARSER]
         Name        syslog
         Format      regex
