@@ -11,6 +11,13 @@
 |FluentD| 1.2.5 |fluent/fluentd:v1.2.5-debian | Add plugins
 |Keycloak proxy| 3.4.2  |jboss/keycloak-proxy:3.4.2.Final
 
+## Helm list
+```
+NAME                 	REVISION	UPDATED                 	STATUS  	CHART                      	APP VERSION	NAMESPACE
+es-curator           	1       	Wed Aug 12 21:38:06 2020	DEPLOYED	elasticsearch-curator-1.5.0	5.5.4      	zcp-system
+zcp-sso-for-logging  	1       	Fri Aug 14 14:26:39 2020	DEPLOYED	zcp-sso-1.0.1              	3.4.2.Final	zcp-system
+```
+
 ## 사전 준비
 ### Helm client 설치 
   설치는 각자 알아서 할 것
