@@ -1,0 +1,184 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: zcp-system
+  labels:
+    app: fluent-bit
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         1
+        Log_Level     info
+        Daemon        off
+        Parsers_File  parsers.conf
+    @INCLUDE input-kubernetes.conf
+    @INCLUDE filter-kubernetes.conf
+    @INCLUDE output-fluentd.conf
+  input-kubernetes.conf: |
+    [INPUT]
+        Name              tail
+        Tag               kube.*
+        Path              /var/log/containers/*.log
+        Parser            containerd
+        DB                /var/log/flb_kube.db
+        Mem_Buf_Limit     5MB
+        Refresh_Interval  10
+        Exclude_Path      /var/log/containers/fluentd-aggregator*,/var/log/containers/p*nginx-ingress-*controller*_kube-system_*.log
+    [INPUT]
+        Name              tail
+        Tag               kubemeta.*
+        Path              /var/log/*.log
+        Path_Key          file
+        Parser            kubemeta
+        DB                /var/log/flb_kubemeta.db
+        Mem_Buf_Limit     5MB
+        Refresh_Interval  10
+    [INPUT]
+        Name              tail
+        Tag               ingress.*
+        Path              /var/log/containers/p*-alb*_kube-system_*.log
+        Parser            containerd
+        DB                /var/log/flb_ingress.db
+        Mem_Buf_Limit     5MB
+        Refresh_Interval  10
+    [INPUT]
+        Name              tail
+        Tag               ingress.*
+        Path              /var/log/containers/p*-nginx-ingress-*controller*_kube-system_*.log
+        Parser            containerd
+        DB                /var/log/flb_ingress.db
+        Mem_Buf_Limit     5MB
+        Refresh_Interval  10
+  filter-kubernetes.conf: |
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc.cluster.local:443
+        Merge_Log           Off
+        K8S-Logging.Parser  On
+    [FILTER]
+        Name                record_modifier
+        Match               kubemeta.*
+        Record              node_name ${NODE_NAME}
+    [FILTER]
+        Name                kubernetes
+        Match               ingress.*
+        Kube_URL            https://kubernetes.default.svc.cluster.local:443
+        Merge_Log           Off
+        K8S-Logging.Parser  On
+    [FILTER]
+        Name                lua
+        Match               kube.*
+        script              /fluent-bit/scripts/kubernetes_dedot.lua
+        call                dedot
+    [FILTER]
+        Name                lua
+        Match               ingress.*
+        script              /fluent-bit/scripts/kubernetes_dedot.lua
+        call                dedot
+  output-fluentd.conf: |
+    [OUTPUT]
+        Name            forward
+        Match           *
+        Host            fluentd-aggregator
+        Port            24224
+        Time_as_Integer True
+  parsers.conf: |
+    [PARSER]
+        Name   apache
+        Format regex
+        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+    [PARSER]
+        Name   apache2
+        Format regex
+        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+    [PARSER]
+        Name   apache_error
+        Format regex
+        Regex  ^\[[^ ]* (?<time>[^\]]*)\] \[(?<level>[^\]]*)\](?: \[pid (?<pid>[^\]]*)\])?( \[client (?<client>[^\]]*)\])? (?<message>.*)$
+    [PARSER]
+        Name   nginx
+        Format regex
+        Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+    [PARSER]
+        Name   json
+        Format json
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+        Decode_Field_as escaped_utf8 log
+    [PARSER]
+        Name        containerd
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep   On
+        #Regex ^(?<time>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,}Z) (?<stream>stdout|stderr) (?<line>[FPI]) (?<log>.*)$
+        # Command      |  Decoder | Field | Optional Action
+        # =============|==================|=================
+        Decode_Field_As    escaped      log
+    [PARSER]
+        Name        syslog
+        Format      regex
+        Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
+        Time_Key    time
+        Time_Format %b %d %H:%M:%S
+    [PARSER]
+        Format regex
+        Name java_multiline
+        Regex (?<apptime>\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}\.\d{2,3})  (?<level>[^ ]*) (?<pid>[^ ]*) --- \[(?<thread>[^\]]*)\] *(?<message>.*)$
+        Time_Format %Y-%m-%d %H:%M:%S.%L
+        Time_Keep On
+        Time_Key apptime
+    [PARSER]
+        Name        kubemeta
+        Format      regex
+        Regex       (?<apptime>^\D{3} (\s\d{1}|\d{1,2}) \d{2}:\d{2}:\d{2})(?<log>.*)
+        Time_Format %b %d %H:%M:%S
+        Time_Key    apptime
+        Time_Keep   On
+    [PARSER]
+        Name        nginx-ingress
+        Format      json
+        Time_Key    time_date
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep   On
+        # Command      |  Decoder | Field | Optional Action
+        # =============|==================|=================
+        Decode_Field_As    escaped      log
+  kubernetes_dedot.lua: |-
+    function dedot(tag, timestamp, record)
+        if record["kubernetes"] == nil then
+            return 0, 0, 0
+        end
+        dedot_keys(record["kubernetes"]["annotations"])
+        dedot_keys(record["kubernetes"]["labels"])
+        return 1, timestamp, record
+    end
+    function dedot_keys(map)
+        if map == nil then
+            return
+        end
+        local new_map = {}
+        local changed_keys = {}
+        for k, v in pairs(map) do
+            local deslashed = string.gsub(k, "%/", "_")
+            local dedotted = string.gsub(deslashed, "%.", "_")
+            if dedotted ~= k then
+                new_map[dedotted] = v
+                changed_keys[k] = true
+            end
+        end
+        for k in pairs(changed_keys) do
+            map[k] = nil
+        end
+        for k, v in pairs(new_map) do
+            map[k] = v
+        end
+    end

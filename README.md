@@ -66,6 +66,22 @@ Logging 노드가 1대인 경우
 $ kubectl create -k providers/eks-single
 ```
 
+### for AKS elasticsearch cluster
+
+Logging 노드가 3대인 경우
+
+```shell script
+$ kubectl create -k providers/aks
+```
+
+### for AKS elasticsearch single node
+
+Logging 노드가 1대인 경우
+
+```shell script
+$ kubectl create -k providers/aks-single
+```
+
 ## Install keycloak proxy (SSO) with helm
 
   * values 수정
