@@ -13,6 +13,11 @@ spec:
   podManagementPolicy: Parallel
   serviceName: elasticsearch-data
   replicas: 3
+  selector:
+    matchLabels:
+      app: elasticsearch
+      component: elasticsearch
+      role: data
   template:
     metadata:
       labels:

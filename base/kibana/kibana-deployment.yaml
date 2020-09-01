@@ -8,6 +8,10 @@ metadata:
   namespace: zcp-system
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+      component: kibana
   template:
     metadata:
       labels:
