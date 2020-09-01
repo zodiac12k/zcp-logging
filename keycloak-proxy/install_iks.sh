@@ -8,6 +8,7 @@ REALM_PUBLIC_KEY=
 AUTH_SERVER_URL=https://iks-dev-iam.cloudzcp.io/auth
 
 helm install zcp/zcp-sso \
+--version 1.0.1 \
 --name zcp-sso-for-logging \
 -f values-eks.yaml \
 --namespace ${TARGET_NAMESPACE} \
