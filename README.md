@@ -91,15 +91,6 @@ $ kubectl create -k providers/aks-single
 
 ## Install keycloak proxy (SSO) with helm
 
-* 설치 스크립트 실행
-```shell script
-# AKS 인 경우
-$ keycloak-proxy/install_iks.sh
-
-# AKS 인 경우
-$ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values-aks.yaml zcp/zcp-sso
-```
-
 * script variables 변경
 ```shell script
 # for IKS
