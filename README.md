@@ -63,7 +63,7 @@ $ kubectl create -k providers/eks
 Logging 노드가 1대인 경우
 
 ```shell script
-$ kubectl create -k providers/eks
+$ kubectl create -k providers/eks-single
 ```
 
 ## Install keycloak proxy (SSO) with helm
