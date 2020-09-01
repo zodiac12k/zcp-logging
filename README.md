@@ -120,20 +120,21 @@ KEYCLOAK_PROXY_INGRESS_CONTROLLER=private-nginx
 REALM_PUBLIC_KEY=
 AUTH_SERVER_URL=https://aks-dev-iam.cloudzcp.io/auth
 ```
+
 > Public Key 확인 방법
-  * keycloak login
-  * ZCP Realm 선택
-  * Realm Settings > Keys tab 선택
-  * RSA 행의 Public key 버튼 클릭 후 값 복사
-  ![](./img/2019-01-31-15-33-15.png)
+> 1. keycloak login
+> 2. ZCP Realm 선택
+> 3. Realm Settings > Keys tab 선택
+> 4. RSA 행의 Public key 버튼 클릭 후 값 복사
+> ![](./img/2019-01-31-15-33-15.png)
 
 > secret 확인 방법
-  * keycloak login
-  * ZCP Realm 선택
-  * Clients 메뉴 선택
-  * Logging > Credentials 선택
-  * Secret 값 복사
-  ![](./img/2019-01-31-15-37-09.png)
+> 1. keycloak login
+> 2. ZCP Realm 선택
+> 3. Clients 메뉴 선택
+> 4. Logging > Credentials 선택
+> 5. Secret 값 복사
+> ![](./img/2019-01-31-15-37-09.png)
 
 * 설치 스크립트 실행
 ```shell script
@@ -151,46 +152,24 @@ $ keycloak-proxy/install_aks.sh
 
 오래된 Index를 삭제하기 위하여 curator 를 설치
 
-    ```shell script
-    $ helm install stable/elasticsearch-curator --version 1.5.0 -n es-curator -f elasticsearch-curator/values.yaml --namespace=zcp-system
-
-    NAME:   es-curator
-    LAST DEPLOYED: Mon May 13 18:11:03 2019
-    NAMESPACE: zcp-system
-    STATUS: DEPLOYED
-
-    RESOURCES:
-    ==> v1beta1/CronJob
-    NAME                              SCHEDULE    SUSPEND  ACTIVE  LAST SCHEDULE  AGE
-    es-curator-elasticsearch-curator  0 15 * * *  False    0       <none>         0s
-
-    ==> v1/ConfigMap
-    NAME                                     DATA  AGE
-    es-curator-elasticsearch-curator-config  2     0s
-
-    NOTES:
-    A CronJob will run with schedule 0 15 * * *.
-
-    The Jobs will not be removed automagically when deleting this Helm chart.
-    To remove these jobs, run the following :
-
-    kubectl -n zcp-system delete job -l app=elasticsearch-curator,release=es-curator
-    ```
+```shell script
+$ helm install stable/elasticsearch-curator --version 1.5.0 -n es-curator -f elasticsearch-curator/values.yaml --namespace=zcp-system
+```
 >
 > *********** <참고> 잘못 올라간 helm 지우고 싶을 때는 아래 명령어를 사용. **************
 >
-```sh
+```shell script
 $ helm del --purge zcp-sso-for-logging
 ```
 
-  * 생성된 ingress 확인
-    > 확인사항
-    > * HOSTS 명 : 해당 클러스터의 로깅 도메인명  
-    > * ADDRESS : IP ADDR가 정상적으로 할당 
+* 생성된 ingress 확인
+> 확인사항
+> * HOSTS 명 : 해당 클러스터의 로깅 도메인명  
+> * ADDRESS : IP ADDR가 정상적으로 할당 
 
-    ```sh
-    $ kubectl get ingress
-    NAME                    HOSTS                         ADDRESS          PORTS     AGE
-    zcp-sso-for-logging     labs-logging.cloudzcp.io      XXXXXXX   80, 443   8s
-    ```
+```shell script
+$ kubectl get ingress
+NAME                    HOSTS                         ADDRESS          PORTS     AGE
+zcp-sso-for-logging     labs-logging.cloudzcp.io      XXXXXXX   80, 443   8s
+```
 
