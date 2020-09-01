@@ -20,22 +20,22 @@ zcp-sso-for-logging  	1       	Fri Aug 14 14:26:39 2020	DEPLOYED	zcp-sso-1.0.1  
 
 ## 사전 준비
 ### Helm client 설치 
-  설치는 각자 알아서 할 것
-  ```
-  $ helm init --client-only
+설치는 각자 알아서 할 것
+```shell script
+$ helm init --client-only
 
-  # Repository 추가
-  $ helm repo add zcp https://raw.githubusercontent.com/cnpst/charts/master/docs
-  ```
+# Repository 추가
+$ helm repo add zcp https://raw.githubusercontent.com/cnpst/charts/master/docs
+```
 
 ### Clone this project into desktop
-  ```
-  $ git clone https://github.com/cnpst/zcp-logging.git
-  ```
-  설치 파일 디렉토리로 이동한다.
-  ```
-  $ cd zcp-logging
-  ```
+```shell script
+$ git clone https://github.com/cnpst/zcp-logging.git
+```
+설치 파일 디렉토리로 이동한다.
+```shell script
+$ cd zcp-logging
+```
 
 ## Install elastisearch, fluentbit, fluentd, kibana with kustomize
 
@@ -91,76 +91,70 @@ $ kubectl create -k providers/aks-single
 
 ## Install keycloak proxy (SSO) with helm
 
-  * values 수정
-    > 변경 할 내용
-    > * ingress
-    >   * hostname
-    >   * ALB-ID
-    > * configmap
-    >   * realmPublickey
-    >   * authServerUrl
-    >   * secret
-    
-    ```
-    $ vi keycloak/values.yaml
-    # AKS 인 경우
-    $ vi keycloak/values-aks.yaml
+* 설치 스크립트 실행
+```shell script
+# AKS 인 경우
+$ keycloak-proxy/install_iks.sh
 
-    ...
-    ingress:
-      enabled: true 
-      annotations: 
-        ingress.bluemix.net/redirect-to-https: "True"
-        ingress.bluemix.net/ALB-ID: private-cr3d6b18b315544bcc8cdf94926c2d12c0-alb1    # ALB ID 로 수정. public 인 경우 주석처리
-      path: /
-      hosts:
-        - logging.cloudzcp.io      # 도메인 변경
-      tls:
-        - secretName: cloudzcp-io-cert
-          hosts:
-            - logging.cloudzcp.io     # 도메인 변경
-    ...
-    configmap:
-      targetUrl: http://kibana:5602/
-      realm: zcp
-      realmPublicKey: "XXXXXXXXXX"     # Keycloak 에서 Public key 확인 후 변경
-      authServerUrl: https://iam.cloudzcp.io/auth   # Keycloak 도메인으로 변경
-      resource: logging 
-      secret: XXXXXXXXXXXXX    # Keyclock 에서 client secret 확인 후 변경
-      pattern: /*	
-      rolesAllowed: log-manager
-    ```
-    > ALB ID 확인방법
-      ```sh
-      $ ic cs albs --cluster zcp-dtlabs #<- cluster명
-      OK
-      ALB ID                                            Enabled   Status     Type      ALB IP           Zone
-      private-cr5b9db2e16f62495b9ed316eb298760c6-alb1   false     disabled   private   -                -
-      public-cr5b9db2e16f62495b9ed316eb298760c6-alb1    true      enabled    public    169.56.106.158   seo01
-      ```
+# AKS 인 경우
+$ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values-aks.yaml zcp/zcp-sso
+```
 
-    > Public Key 확인 방법
-      * keycloak login
-      * ZCP Realm 선택
-      * Realm Settings > Keys tab 선택
-      * RSA 행의 Public key 버튼 클릭 후 값 복사
-      ![](./img/2019-01-31-15-33-15.png)
+* script variables 변경
+```shell script
+# for IKS
+$ vi keycloak-proxy/install_iks.sh
+# variables
+TARGET_NAMESPACE=zcp-system
+KEYCLOAK_PROXY_INGRESS_HOSTS=iks-dev-logging.cloudzcp.io
+KEYCLOAK_PROXY_INGRESS_CONTROLLER=private-**-alb1
+REALM_PUBLIC_KEY=
+AUTH_SERVER_URL=https://iks-dev-iam.cloudzcp.io/auth
 
-    > secret 확인 방법
-      * keycloak login
-      * ZCP Realm 선택
-      * Clients 메뉴 선택
-      * Logging > Credentials 선택
-      * Secret 값 복사
-      ![](./img/2019-01-31-15-37-09.png)
+# for EKS
+$ vi keycloak-proxy/install_eks.sh
+# variables
+TARGET_NAMESPACE=zcp-system
+KEYCLOAK_PROXY_INGRESS_HOSTS=eks-dev-logging.cloudzcp.io
+KEYCLOAK_PROXY_INGRESS_CONTROLLER=private-nginx
+REALM_PUBLIC_KEY=
+AUTH_SERVER_URL=https://eks-dev-iam.cloudzcp.io/auth
 
-  * Helm 설치
-    ```sh
-    $ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values.yaml zcp/zcp-sso
-    
-    # AKS 인 경우
-    $ helm install --name zcp-sso-for-logging --namespace zcp-system -f keycloak/values-aks.yaml zcp/zcp-sso
-    ```
+# for AKS
+$ vi keycloak-proxy/install_aks.sh
+# variables
+TARGET_NAMESPACE=zcp-system
+KEYCLOAK_PROXY_INGRESS_HOSTS=aks-dev-logging.cloudzcp.io
+KEYCLOAK_PROXY_INGRESS_CONTROLLER=private-nginx
+REALM_PUBLIC_KEY=
+AUTH_SERVER_URL=https://aks-dev-iam.cloudzcp.io/auth
+```
+> Public Key 확인 방법
+  * keycloak login
+  * ZCP Realm 선택
+  * Realm Settings > Keys tab 선택
+  * RSA 행의 Public key 버튼 클릭 후 값 복사
+  ![](./img/2019-01-31-15-33-15.png)
+
+> secret 확인 방법
+  * keycloak login
+  * ZCP Realm 선택
+  * Clients 메뉴 선택
+  * Logging > Credentials 선택
+  * Secret 값 복사
+  ![](./img/2019-01-31-15-37-09.png)
+
+* 설치 스크립트 실행
+```shell script
+# for IKS
+$ keycloak-proxy/install_iks.sh
+
+# for EKS
+$ keycloak-proxy/install_eks.sh
+
+# for AKS
+$ keycloak-proxy/install_aks.sh
+```
 
 ## Install elasticsearch-curator with helm
 
