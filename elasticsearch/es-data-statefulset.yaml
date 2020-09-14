@@ -12,7 +12,11 @@ spec:
     type: RollingUpdate
   podManagementPolicy: Parallel
   serviceName: elasticsearch-data
-  replicas: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+      component: elasticsearch
   template:
     metadata:
       labels:

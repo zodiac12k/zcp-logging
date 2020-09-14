@@ -9,6 +9,10 @@ metadata:
   namespace: zcp-system
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+      component: elasticsearch
   template:
     metadata:
       labels:
