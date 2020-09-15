@@ -91,10 +91,15 @@ $ kubectl create -k providers/aks-single
 
 ## Install keycloak proxy (SSO) with helm
 
+설치 파일 디렉토리로 이동한다.
+```shell script
+$ cd keycloak-proxy
+```
+
 * script variables 변경
 ```shell script
 # for IKS
-$ vi keycloak-proxy/install_iks.sh
+$ vi install_iks.sh
 # variables
 TARGET_NAMESPACE=zcp-system
 KEYCLOAK_PROXY_INGRESS_HOSTS=iks-dev-logging.cloudzcp.io
@@ -103,7 +108,7 @@ REALM_PUBLIC_KEY=
 AUTH_SERVER_URL=https://iks-dev-iam.cloudzcp.io/auth
 
 # for EKS
-$ vi keycloak-proxy/install_eks.sh
+$ vi install_eks.sh
 # variables
 TARGET_NAMESPACE=zcp-system
 KEYCLOAK_PROXY_INGRESS_HOSTS=eks-dev-logging.cloudzcp.io
@@ -112,7 +117,7 @@ REALM_PUBLIC_KEY=
 AUTH_SERVER_URL=https://eks-dev-iam.cloudzcp.io/auth
 
 # for AKS
-$ vi keycloak-proxy/install_aks.sh
+$ vi install_aks.sh
 # variables
 TARGET_NAMESPACE=zcp-system
 KEYCLOAK_PROXY_INGRESS_HOSTS=aks-dev-logging.cloudzcp.io
@@ -139,13 +144,13 @@ AUTH_SERVER_URL=https://aks-dev-iam.cloudzcp.io/auth
 * 설치 스크립트 실행
 ```shell script
 # for IKS
-$ keycloak-proxy/install_iks.sh
+$ ./install_iks.sh
 
 # for EKS
-$ keycloak-proxy/install_eks.sh
+$ ./install_eks.sh
 
 # for AKS
-$ keycloak-proxy/install_aks.sh
+$ ./install_aks.sh
 ```
 
 ## Install elasticsearch-curator with helm
