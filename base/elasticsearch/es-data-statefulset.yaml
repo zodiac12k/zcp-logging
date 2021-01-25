@@ -44,23 +44,6 @@ spec:
                 operator: In
                 values:
                 - "logging"
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: "app"
-                operator: In
-                values:
-                  - "elasticsearch"
-              - key: "component"
-                operator: In
-                values:
-                  - "elasticsearch"
-              - key: "role"
-                operator: In
-                values:
-                  - "data"
-            topologyKey: "kubernetes.io/hostname"
       securityContext:
         fsGroup: 1000
       initContainers:
@@ -118,12 +101,14 @@ spec:
       labels:
         app: elasticsearch
         component: elasticsearch
-        role: data
-      namespace: zcp-system
+        namespace: zcp-system
+#        billingType: "monthly"
+      annotations: 
+        volume.beta.kubernetes.io/storage-class: ibmc-block-retain-silver
     spec:
       accessModes:
         - ReadWriteOnce
       resources:
         requests:
           storage: "200Gi"
-      storageClassName: "ebs-gp2"
+      storageClassName: "ibmc-block-retain-silever"
